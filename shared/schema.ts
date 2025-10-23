@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -79,6 +79,8 @@ export const reports = pgTable("reports", {
   rejectionReason: text("rejection_reason"),
   rejectedAt: timestamp("rejected_at"),
   
+  actionHistory: jsonb("action_history").$type<ActionHistoryItem[]>().default(sql`'[]'::jsonb`),
+  
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -134,3 +136,13 @@ export type OfficeApproval = z.infer<typeof officeApprovalSchema>;
 
 // Report status type
 export type ReportStatus = 'draft' | 'driver_submitted' | 'field_submitted' | 'rejected' | 'completed';
+
+// Action history item
+export type ActionHistoryItem = {
+  actionType: 'submit' | 'approve' | 'reject' | 'resubmit' | 'office_approve' | 'office_reject';
+  actor: string;
+  actorRole: 'driver' | 'field' | 'office';
+  timestamp: string;
+  reason?: string;
+  details?: string;
+};
