@@ -225,7 +225,7 @@ export default function DriverDashboard({
               검토대기 ({pendingReviewReports.length})
             </TabsTrigger>
             <TabsTrigger value="reviewed" data-testid="tab-reviewed">
-              검토완료 ({reviewedReports.length})
+              승인대기 ({reviewedReports.length})
             </TabsTrigger>
             <TabsTrigger value="completed" data-testid="tab-completed">
               승인완료 ({completedReports.length})
@@ -264,7 +264,7 @@ export default function DriverDashboard({
               <Card>
                 <CardContent className="py-12 text-center">
                   <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">검토 완료된 보고서가 없습니다.</p>
+                  <p className="text-muted-foreground">승인 대기 중인 보고서가 없습니다.</p>
                 </CardContent>
               </Card>
             ) : (
