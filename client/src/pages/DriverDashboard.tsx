@@ -125,15 +125,19 @@ export default function DriverDashboard({
       <header className="bg-card border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
               <div className="w-10 h-10 rounded-full bg-driver/10 flex items-center justify-center">
                 <Truck className="w-5 h-5 text-driver" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h1 className="font-semibold text-lg" data-testid="text-driver-name">
                   {driverName}
                 </h1>
-                <p className="text-sm text-muted-foreground">{vehicleNo}</p>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span>{vehicleNo}</span>
+                  <span>•</span>
+                  <span>{driverPhone}</span>
+                </div>
               </div>
             </div>
             <Button
