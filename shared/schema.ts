@@ -144,6 +144,7 @@ export type ActionHistoryItem = {
   actor: string;
   actorRole: 'driver' | 'field' | 'office';
   timestamp: string;
-  reason?: string;
-  details?: string;
+  reason?: string; // 반려 사유
+  content?: string; // 파손 내용, 확인 내용 등
+  signature?: string; // 서명
 };
