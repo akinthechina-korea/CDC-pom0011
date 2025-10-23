@@ -95,8 +95,23 @@ export default function OfficeDashboard({
     resetForm();
   };
 
-  const pendingReports = reports.filter(r => r.status === 'field_submitted');
-  const completedReports = reports.filter(r => r.status === 'completed');
+  // 승인 대기: 현장 확인 시간 기준 최신순
+  const pendingReports = reports
+    .filter(r => r.status === 'field_submitted')
+    .sort((a, b) => {
+      const timeA = a.fieldSubmittedAt ? new Date(a.fieldSubmittedAt).getTime() : 0;
+      const timeB = b.fieldSubmittedAt ? new Date(b.fieldSubmittedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 승인 완료: 최종 승인 시간 기준 최신순
+  const completedReports = reports
+    .filter(r => r.status === 'completed')
+    .sort((a, b) => {
+      const timeA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+      const timeB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+      return timeB - timeA;
+    });
 
   return (
     <div className="min-h-screen bg-office/5">

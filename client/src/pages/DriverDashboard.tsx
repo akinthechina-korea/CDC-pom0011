@@ -133,8 +133,28 @@ export default function DriverDashboard({
   };
 
   const myReports = reports.filter(r => r.vehicleNo === vehicleNo);
-  const rejectedReports = myReports.filter(r => r.status === 'rejected');
-  const otherReports = myReports.filter(r => r.status !== 'rejected');
+  
+  // 반려된 보고서: 반려 시간 기준 최신순
+  const rejectedReports = myReports
+    .filter(r => r.status === 'rejected')
+    .sort((a, b) => {
+      const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
+      const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 기타 보고서: 제출/승인 시간 기준 최신순
+  const otherReports = myReports
+    .filter(r => r.status !== 'rejected')
+    .sort((a, b) => {
+      const getRelevantTime = (report: Report) => {
+        if (report.status === 'completed' && report.completedAt) return new Date(report.completedAt).getTime();
+        if (report.status === 'field_submitted' && report.fieldSubmittedAt) return new Date(report.fieldSubmittedAt).getTime();
+        if (report.driverSubmittedAt) return new Date(report.driverSubmittedAt).getTime();
+        return new Date(report.createdAt).getTime();
+      };
+      return getRelevantTime(b) - getRelevantTime(a);
+    });
 
   return (
     <div className="min-h-screen bg-driver/5">

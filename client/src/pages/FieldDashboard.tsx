@@ -114,8 +114,26 @@ export default function FieldDashboard({
     resetForm();
   };
 
-  const pendingReports = reports.filter(r => r.status === 'driver_submitted');
-  const reviewedReports = reports.filter(r => r.status === 'field_submitted' || r.status === 'completed');
+  // 검토 대기: 기사 제출 시간 기준 최신순
+  const pendingReports = reports
+    .filter(r => r.status === 'driver_submitted')
+    .sort((a, b) => {
+      const timeA = a.driverSubmittedAt ? new Date(a.driverSubmittedAt).getTime() : 0;
+      const timeB = b.driverSubmittedAt ? new Date(b.driverSubmittedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 검토 완료: 현장 확인/최종 승인 시간 기준 최신순
+  const reviewedReports = reports
+    .filter(r => r.status === 'field_submitted' || r.status === 'completed')
+    .sort((a, b) => {
+      const getRelevantTime = (report: Report) => {
+        if (report.status === 'completed' && report.completedAt) return new Date(report.completedAt).getTime();
+        if (report.fieldSubmittedAt) return new Date(report.fieldSubmittedAt).getTime();
+        return 0;
+      };
+      return getRelevantTime(b) - getRelevantTime(a);
+    });
 
   return (
     <div className="min-h-screen bg-field/5">
