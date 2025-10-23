@@ -226,6 +226,32 @@ export default function AppContent() {
     },
   });
 
+  // Office reject mutation
+  const officeRejectMutation = useMutation({
+    mutationFn: async ({ reportId, reason }: {
+      reportId: string;
+      reason: string;
+    }) => {
+      return await apiRequest('PUT', `/api/reports/${reportId}/office-reject`, {
+        rejectionReason: reason,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+      toast({
+        title: "보고서 반려",
+        description: "보고서가 반려되었습니다. 현장이 다시 검토할 수 있습니다.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "반려 실패",
+        description: "보고서 반려 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Download report
   const handleDownloadReport = async (reportId: string) => {
     try {
@@ -305,32 +331,6 @@ export default function AppContent() {
       />
     );
   }
-
-  // Office reject mutation
-  const officeRejectMutation = useMutation({
-    mutationFn: async ({ reportId, reason }: {
-      reportId: string;
-      reason: string;
-    }) => {
-      return await apiRequest('PUT', `/api/reports/${reportId}/office-reject`, {
-        rejectionReason: reason,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
-      toast({
-        title: "보고서 반려",
-        description: "보고서가 반려되었습니다. 현장이 다시 검토할 수 있습니다.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "반려 실패",
-        description: "보고서 반려 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    },
-  });
 
   if (currentRole === 'office') {
     return (
