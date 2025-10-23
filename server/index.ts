@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
 
 const app = express();
 
@@ -15,6 +16,9 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// Serve damage photos statically
+app.use('/assets/damage_photos', express.static(path.join(process.cwd(), 'attached_assets', 'damage_photos')));
 
 app.use((req, res, next) => {
   const start = Date.now();

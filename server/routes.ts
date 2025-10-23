@@ -11,6 +11,41 @@ import {
   insertOfficeStaffSchema
 } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Configure multer for file upload
+const uploadDir = path.join(process.cwd(), "attached_assets", "damage_photos");
+
+// Ensure upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('이미지 파일만 업로드 가능합니다 (JPG, PNG, WEBP)'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication endpoint
@@ -199,6 +234,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Photo upload endpoint
+  app.post("/api/upload/damage-photo", upload.single('photo'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "사진 파일이 없습니다" });
+      }
+      
+      // Return the relative path from the attached_assets directory
+      const photoUrl = `/assets/damage_photos/${req.file.filename}`;
+      res.json({ url: photoUrl });
+    } catch (error: any) {
+      if (error.message) {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(500).json({ error: "사진 업로드 실패" });
+    }
+  });
+
   // Report endpoints
 
   // Get all reports
@@ -255,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Resubmit report (driver updates rejected report)
   app.put("/api/reports/:id/resubmit", async (req, res) => {
     try {
-      const { driverDamage, driverSignature } = req.body;
+      const { driverDamage, driverSignature, damagePhotos } = req.body;
 
       if (!driverDamage || !driverSignature) {
         return res.status(400).json({ error: "필수 항목을 입력해주세요" });
@@ -270,14 +323,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "반려된 보고서만 재제출할 수 있습니다" });
       }
 
-      const updatedReport = await storage.updateReport(req.params.id, {
+      const updateData: any = {
         driverDamage,
         driverSignature,
         status: 'driver_submitted',
         driverSubmittedAt: new Date(),
         rejectionReason: null,
         rejectedAt: null,
-      });
+      };
+
+      if (damagePhotos !== undefined) {
+        updateData.damagePhotos = damagePhotos;
+      }
+
+      const updatedReport = await storage.updateReport(req.params.id, updateData);
 
       res.json(updatedReport);
     } catch (error) {

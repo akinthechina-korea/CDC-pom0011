@@ -84,6 +84,7 @@ export default function AppContent() {
       blNo: string;
       driverDamage: string;
       driverSignature: string;
+      damagePhotos?: string[];
     }) => {
       if (!driverSession) throw new Error("No driver session");
       
@@ -115,7 +116,7 @@ export default function AppContent() {
   const updateReportMutation = useMutation({
     mutationFn: async ({ reportId, data }: {
       reportId: string;
-      data: { driverDamage: string; driverSignature: string };
+      data: { driverDamage: string; driverSignature: string; damagePhotos?: string[] };
     }) => {
       return await apiRequest('PUT', `/api/reports/${reportId}/resubmit`, data);
     },

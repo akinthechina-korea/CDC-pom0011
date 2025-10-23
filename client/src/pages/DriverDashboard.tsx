@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "@/components/ui/separator";
 import { Truck, Plus, ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
+import { PhotoUploader } from "@/components/PhotoUploader";
 import { useToast } from "@/hooks/use-toast";
 import type { Report, Cargo } from "@shared/schema";
 
@@ -24,10 +25,12 @@ interface DriverDashboardProps {
     blNo: string;
     driverDamage: string;
     driverSignature: string;
+    damagePhotos?: string[];
   }) => void;
   onUpdateReport: (reportId: string, data: {
     driverDamage: string;
     driverSignature: string;
+    damagePhotos?: string[];
   }) => void;
   onDownloadReport: (reportId: string) => void;
 }
@@ -53,6 +56,7 @@ export default function DriverDashboard({
     blNo: "",
     driverDamage: "",
     driverSignature: "",
+    damagePhotos: [] as string[],
   });
 
   const resetForm = () => {
@@ -61,6 +65,7 @@ export default function DriverDashboard({
       blNo: "",
       driverDamage: "",
       driverSignature: "",
+      damagePhotos: [],
     });
   };
 
@@ -103,6 +108,7 @@ export default function DriverDashboard({
     onUpdateReport(selectedReport.id, {
       driverDamage: formData.driverDamage,
       driverSignature: formData.driverSignature,
+      damagePhotos: formData.damagePhotos,
     });
     setIsEditing(false);
     setSelectedReport(null);
@@ -182,12 +188,13 @@ export default function DriverDashboard({
                   key={report.id}
                   report={report}
                   onClick={() => {
-                    setSelectedReport(report);
+  setSelectedReport(report);
                     setFormData({
                       containerNo: report.containerNo,
                       blNo: report.blNo,
                       driverDamage: report.driverDamage,
                       driverSignature: report.driverSignature,
+                      damagePhotos: report.damagePhotos || [],
                     });
                     setIsEditing(true);
                   }}
@@ -286,6 +293,14 @@ export default function DriverDashboard({
             </div>
 
             <div className="space-y-2">
+              <Label>파손 사진</Label>
+              <PhotoUploader
+                photos={formData.damagePhotos}
+                onChange={(photos) => setFormData(prev => ({ ...prev, damagePhotos: photos }))}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="signature">서명 (이름) *</Label>
               <Input
                 id="signature"
@@ -364,6 +379,14 @@ export default function DriverDashboard({
                   onChange={(e) => setFormData(prev => ({ ...prev, driverDamage: e.target.value }))}
                   className="min-h-32"
                   data-testid="textarea-edit-damage"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>파손 사진 (수정)</Label>
+                <PhotoUploader
+                  photos={formData.damagePhotos}
+                  onChange={(photos) => setFormData(prev => ({ ...prev, damagePhotos: photos }))}
                 />
               </div>
 

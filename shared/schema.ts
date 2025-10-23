@@ -59,6 +59,7 @@ export const reports = pgTable("reports", {
   driverDamage: text("driver_damage").notNull(),
   driverSignature: text("driver_signature").notNull(),
   driverSubmittedAt: timestamp("driver_submitted_at"),
+  damagePhotos: text("damage_photos").array().default(sql`'{}'::text[]`),
   
   fieldStaff: text("field_staff"),
   fieldPhone: text("field_phone"),

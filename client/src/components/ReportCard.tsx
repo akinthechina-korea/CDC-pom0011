@@ -3,6 +3,7 @@ import { StatusBadge } from "./StatusBadge";
 import type { Report } from "@shared/schema";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { Image as ImageIcon } from "lucide-react";
 
 interface ReportCardProps {
   report: Report;
@@ -49,6 +50,12 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
             <p className="text-xs text-muted-foreground">
               제출: {formatDateTime(report.driverSubmittedAt)}
             </p>
+          )}
+          {report.damagePhotos && report.damagePhotos.length > 0 && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground pt-1">
+              <ImageIcon className="h-3 w-3" />
+              <span>사진 {report.damagePhotos.length}장</span>
+            </div>
           )}
         </div>
 
