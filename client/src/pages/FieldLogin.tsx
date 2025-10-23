@@ -3,34 +3,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClipboardCheck, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { FieldStaff } from "@shared/schema";
 
 interface FieldLoginProps {
-  fieldStaffList: FieldStaff[];
-  onLogin: (staffId: string, password: string) => void;
+  onLogin: (staffName: string, password: string, securityCode: string) => void;
   isLoading?: boolean;
   onBack: () => void;
 }
 
-export default function FieldLogin({ fieldStaffList, onLogin, isLoading = false, onBack }: FieldLoginProps) {
-  const [selectedStaff, setSelectedStaff] = useState<string>("");
+export default function FieldLogin({ onLogin, isLoading = false, onBack }: FieldLoginProps) {
+  const [staffName, setStaffName] = useState<string>("");
   const [password, setPassword] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
   const { toast } = useToast();
 
   const handleLogin = () => {
-    if (!selectedStaff || !password) {
+    if (!staffName || !password || !securityCode) {
       toast({
         title: "입력 오류",
-        description: "담당자와 비밀번호를 모두 입력해주세요.",
+        description: "모든 항목을 입력해주세요.",
         variant: "destructive",
       });
       return;
     }
 
-    onLogin(selectedStaff, password);
+    onLogin(staffName, password, securityCode);
   };
 
   return (
@@ -51,19 +49,15 @@ export default function FieldLogin({ fieldStaffList, onLogin, isLoading = false,
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="staff">담당자</Label>
-              <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-                <SelectTrigger id="staff" data-testid="select-staff">
-                  <SelectValue placeholder="선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {fieldStaffList.map((staff) => (
-                    <SelectItem key={staff.id} value={staff.id}>
-                      {staff.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="staff">담당자 이름</Label>
+              <Input
+                id="staff"
+                type="text"
+                placeholder="예: 김도훈"
+                value={staffName}
+                onChange={(e) => setStaffName(e.target.value)}
+                data-testid="input-staff-name"
+              />
             </div>
 
             <div className="space-y-2">
@@ -74,7 +68,6 @@ export default function FieldLogin({ fieldStaffList, onLogin, isLoading = false,
                 placeholder="예: 01023841156"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 data-testid="input-password"
               />
               <p className="text-xs text-muted-foreground">
@@ -82,10 +75,23 @@ export default function FieldLogin({ fieldStaffList, onLogin, isLoading = false,
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="securityCode">보안 코드</Label>
+              <Input
+                id="securityCode"
+                type="password"
+                placeholder="현장 보안 코드 입력"
+                value={securityCode}
+                onChange={(e) => setSecurityCode(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                data-testid="input-security-code"
+              />
+            </div>
+
             <div className="space-y-3">
               <Button
                 onClick={handleLogin}
-                disabled={!selectedStaff || !password || isLoading}
+                disabled={!staffName || !password || !securityCode || isLoading}
                 className="w-full bg-field hover:bg-field/90 text-field-foreground"
                 data-testid="button-login"
               >

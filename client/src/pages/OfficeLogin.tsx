@@ -3,34 +3,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { OfficeStaff } from "@shared/schema";
 
 interface OfficeLoginProps {
-  officeStaffList: OfficeStaff[];
-  onLogin: (staffId: string, password: string) => void;
+  onLogin: (staffName: string, password: string, securityCode: string) => void;
   isLoading?: boolean;
   onBack: () => void;
 }
 
-export default function OfficeLogin({ officeStaffList, onLogin, isLoading = false, onBack }: OfficeLoginProps) {
-  const [selectedStaff, setSelectedStaff] = useState<string>("");
+export default function OfficeLogin({ onLogin, isLoading = false, onBack }: OfficeLoginProps) {
+  const [staffName, setStaffName] = useState<string>("");
   const [password, setPassword] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
   const { toast } = useToast();
 
   const handleLogin = () => {
-    if (!selectedStaff || !password) {
+    if (!staffName || !password || !securityCode) {
       toast({
         title: "입력 오류",
-        description: "담당자와 비밀번호를 모두 입력해주세요.",
+        description: "모든 항목을 입력해주세요.",
         variant: "destructive",
       });
       return;
     }
 
-    onLogin(selectedStaff, password);
+    onLogin(staffName, password, securityCode);
   };
 
   return (
@@ -51,19 +49,15 @@ export default function OfficeLogin({ officeStaffList, onLogin, isLoading = fals
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="staff">담당자</Label>
-              <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-                <SelectTrigger id="staff" data-testid="select-staff">
-                  <SelectValue placeholder="선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {officeStaffList.map((staff) => (
-                    <SelectItem key={staff.id} value={staff.id}>
-                      {staff.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="staff">담당자 이름</Label>
+              <Input
+                id="staff"
+                type="text"
+                placeholder="예: 이수진"
+                value={staffName}
+                onChange={(e) => setStaffName(e.target.value)}
+                data-testid="input-staff-name"
+              />
             </div>
 
             <div className="space-y-2">
@@ -74,7 +68,6 @@ export default function OfficeLogin({ officeStaffList, onLogin, isLoading = fals
                 placeholder="예: 01049417742"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 data-testid="input-password"
               />
               <p className="text-xs text-muted-foreground">
@@ -82,10 +75,23 @@ export default function OfficeLogin({ officeStaffList, onLogin, isLoading = fals
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="securityCode">보안 코드</Label>
+              <Input
+                id="securityCode"
+                type="password"
+                placeholder="사무실 보안 코드 입력"
+                value={securityCode}
+                onChange={(e) => setSecurityCode(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                data-testid="input-security-code"
+              />
+            </div>
+
             <div className="space-y-3">
               <Button
                 onClick={handleLogin}
-                disabled={!selectedStaff || !password || isLoading}
+                disabled={!staffName || !password || !securityCode || isLoading}
                 className="w-full bg-office hover:bg-office/90 text-office-foreground"
                 data-testid="button-login"
               >

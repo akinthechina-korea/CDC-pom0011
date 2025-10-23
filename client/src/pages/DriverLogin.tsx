@@ -3,25 +3,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Truck, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Vehicle } from "@shared/schema";
 
 interface DriverLoginProps {
-  vehicles: Vehicle[];
   onLogin: (vehicleNo: string, password: string) => void;
   isLoading?: boolean;
   onBack: () => void;
 }
 
-export default function DriverLogin({ vehicles, onLogin, isLoading = false, onBack }: DriverLoginProps) {
-  const [selectedVehicle, setSelectedVehicle] = useState<string>("");
+export default function DriverLogin({ onLogin, isLoading = false, onBack }: DriverLoginProps) {
+  const [vehicleNo, setVehicleNo] = useState<string>("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
 
   const handleLogin = () => {
-    if (!selectedVehicle || !password) {
+    if (!vehicleNo || !password) {
       toast({
         title: "입력 오류",
         description: "차량번호와 비밀번호를 모두 입력해주세요.",
@@ -30,7 +27,7 @@ export default function DriverLogin({ vehicles, onLogin, isLoading = false, onBa
       return;
     }
 
-    onLogin(selectedVehicle, password);
+    onLogin(vehicleNo, password);
   };
 
   return (
@@ -52,18 +49,14 @@ export default function DriverLogin({ vehicles, onLogin, isLoading = false, onBa
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="vehicle">차량번호</Label>
-              <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                <SelectTrigger id="vehicle" data-testid="select-vehicle">
-                  <SelectValue placeholder="선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehicles.map((vehicle) => (
-                    <SelectItem key={vehicle.id} value={vehicle.vehicleNo}>
-                      {vehicle.vehicleNo}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="vehicle"
+                type="text"
+                placeholder="예: 89하1234"
+                value={vehicleNo}
+                onChange={(e) => setVehicleNo(e.target.value)}
+                data-testid="input-vehicle"
+              />
             </div>
 
             <div className="space-y-2">
@@ -85,7 +78,7 @@ export default function DriverLogin({ vehicles, onLogin, isLoading = false, onBa
             <div className="space-y-3">
               <Button
                 onClick={handleLogin}
-                disabled={!selectedVehicle || !password || isLoading}
+                disabled={!vehicleNo || !password || isLoading}
                 className="w-full bg-driver hover:bg-driver/90 text-driver-foreground"
                 data-testid="button-login"
               >

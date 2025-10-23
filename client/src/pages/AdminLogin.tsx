@@ -3,34 +3,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { AdminStaff } from "@shared/schema";
 
 interface AdminLoginProps {
-  adminStaffList: AdminStaff[];
-  onLogin: (staffId: string, password: string) => void;
+  onLogin: (adminName: string, password: string, securityCode: string) => void;
   isLoading?: boolean;
   onBack: () => void;
 }
 
-export default function AdminLogin({ adminStaffList, onLogin, isLoading = false, onBack }: AdminLoginProps) {
-  const [selectedStaff, setSelectedStaff] = useState<string>("");
+export default function AdminLogin({ onLogin, isLoading = false, onBack }: AdminLoginProps) {
+  const [adminName, setAdminName] = useState<string>("");
   const [password, setPassword] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
   const { toast } = useToast();
 
   const handleLogin = () => {
-    if (!selectedStaff || !password) {
+    if (!adminName || !password || !securityCode) {
       toast({
         title: "입력 오류",
-        description: "관리자와 비밀번호를 모두 입력해주세요.",
+        description: "모든 항목을 입력해주세요.",
         variant: "destructive",
       });
       return;
     }
 
-    onLogin(selectedStaff, password);
+    onLogin(adminName, password, securityCode);
   };
 
   return (
@@ -51,19 +49,15 @@ export default function AdminLogin({ adminStaffList, onLogin, isLoading = false,
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="staff">관리자</Label>
-              <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-                <SelectTrigger id="staff" data-testid="select-admin">
-                  <SelectValue placeholder="선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {adminStaffList.map((staff) => (
-                    <SelectItem key={staff.id} value={staff.id}>
-                      {staff.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="admin">관리자 이름</Label>
+              <Input
+                id="admin"
+                type="text"
+                placeholder="예: 천일요비"
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                data-testid="input-admin-name"
+              />
             </div>
 
             <div className="space-y-2">
@@ -74,7 +68,6 @@ export default function AdminLogin({ adminStaffList, onLogin, isLoading = false,
                 placeholder="예: 01011111111"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 data-testid="input-password"
               />
               <p className="text-xs text-muted-foreground">
@@ -82,10 +75,23 @@ export default function AdminLogin({ adminStaffList, onLogin, isLoading = false,
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="securityCode">보안 코드</Label>
+              <Input
+                id="securityCode"
+                type="password"
+                placeholder="관리자 보안 코드 입력"
+                value={securityCode}
+                onChange={(e) => setSecurityCode(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                data-testid="input-security-code"
+              />
+            </div>
+
             <div className="space-y-3">
               <Button
                 onClick={handleLogin}
-                disabled={!selectedStaff || !password || isLoading}
+                disabled={!adminName || !password || !securityCode || isLoading}
                 className="w-full"
                 data-testid="button-login"
               >

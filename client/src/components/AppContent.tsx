@@ -12,7 +12,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
-import type { Report, Vehicle, Cargo, FieldStaff, OfficeStaff, AdminStaff } from "@shared/schema";
+import type { Report, Cargo, FieldStaff, OfficeStaff } from "@shared/schema";
 
 type Role = '' | 'driver' | 'field' | 'office' | 'admin';
 
@@ -49,10 +49,6 @@ export default function AppContent() {
   const { toast } = useToast();
 
   // Fetch master data
-  const { data: vehicles = [] } = useQuery<Vehicle[]>({
-    queryKey: ['/api/data/vehicles'],
-  });
-
   const { data: cargoList = [] } = useQuery<Cargo[]>({
     queryKey: ['/api/data/cargo'],
   });
@@ -63,10 +59,6 @@ export default function AppContent() {
 
   const { data: officeStaffList = [] } = useQuery<OfficeStaff[]>({
     queryKey: ['/api/data/office-staff'],
-  });
-
-  const { data: adminStaffList = [] } = useQuery<AdminStaff[]>({
-    queryKey: ['/api/data/admin-staff'],
   });
 
   // Fetch reports
@@ -108,7 +100,7 @@ export default function AppContent() {
 
   // Field login mutation
   const fieldLoginMutation = useMutation({
-    mutationFn: async (data: { staffId: string; password: string }) => {
+    mutationFn: async (data: { staffName: string; password: string; securityCode: string }) => {
       const res = await apiRequest('POST', '/api/auth/field-login', data);
       return await res.json();
     },
@@ -140,7 +132,7 @@ export default function AppContent() {
 
   // Office login mutation
   const officeLoginMutation = useMutation({
-    mutationFn: async (data: { staffId: string; password: string }) => {
+    mutationFn: async (data: { staffName: string; password: string; securityCode: string }) => {
       const res = await apiRequest('POST', '/api/auth/office-login', data);
       return await res.json();
     },
@@ -172,7 +164,7 @@ export default function AppContent() {
 
   // Admin login mutation
   const adminLoginMutation = useMutation({
-    mutationFn: async (data: { staffId: string; password: string }) => {
+    mutationFn: async (data: { adminName: string; password: string; securityCode: string }) => {
       const res = await apiRequest('POST', '/api/auth/admin-login', data);
       return await res.json();
     },
@@ -424,7 +416,6 @@ export default function AppContent() {
     if (!driverSession) {
       return (
         <DriverLogin
-          vehicles={vehicles}
           onLogin={(vehicleNo, password) => driverLoginMutation.mutate({ vehicleNo, password })}
           isLoading={driverLoginMutation.isPending}
           onBack={() => setCurrentRole('')}
@@ -451,8 +442,7 @@ export default function AppContent() {
     if (!fieldSession) {
       return (
         <FieldLogin
-          fieldStaffList={fieldStaffList}
-          onLogin={(staffId, password) => fieldLoginMutation.mutate({ staffId, password })}
+          onLogin={(staffName, password, securityCode) => fieldLoginMutation.mutate({ staffName, password, securityCode })}
           isLoading={fieldLoginMutation.isPending}
           onBack={() => setCurrentRole('')}
         />
@@ -477,8 +467,7 @@ export default function AppContent() {
     if (!officeSession) {
       return (
         <OfficeLogin
-          officeStaffList={officeStaffList}
-          onLogin={(staffId, password) => officeLoginMutation.mutate({ staffId, password })}
+          onLogin={(staffName, password, securityCode) => officeLoginMutation.mutate({ staffName, password, securityCode })}
           isLoading={officeLoginMutation.isPending}
           onBack={() => setCurrentRole('')}
         />
@@ -503,8 +492,7 @@ export default function AppContent() {
     if (!adminSession) {
       return (
         <AdminLogin
-          adminStaffList={adminStaffList}
-          onLogin={(staffId, password) => adminLoginMutation.mutate({ staffId, password })}
+          onLogin={(adminName, password, securityCode) => adminLoginMutation.mutate({ adminName, password, securityCode })}
           isLoading={adminLoginMutation.isPending}
           onBack={() => setCurrentRole('')}
         />

@@ -93,7 +93,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = fieldLoginSchema.parse(req.body);
 
-      const staff = await storage.getFieldStaff(validatedData.staffId);
+      // Validate security code
+      const FIELD_SECURITY_CODE = "93848869";
+      if (validatedData.securityCode !== FIELD_SECURITY_CODE) {
+        return res.status(401).json({ error: "보안 코드가 일치하지 않습니다" });
+      }
+
+      const staff = await storage.getFieldStaffByName(validatedData.staffName);
       
       if (!staff) {
         return res.status(401).json({ error: "담당자를 찾을 수 없습니다" });
@@ -127,7 +133,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = officeLoginSchema.parse(req.body);
 
-      const staff = await storage.getOfficeStaff(validatedData.staffId);
+      // Validate security code
+      const OFFICE_SECURITY_CODE = "23485759";
+      if (validatedData.securityCode !== OFFICE_SECURITY_CODE) {
+        return res.status(401).json({ error: "보안 코드가 일치하지 않습니다" });
+      }
+
+      const staff = await storage.getOfficeStaffByName(validatedData.staffName);
       
       if (!staff) {
         return res.status(401).json({ error: "담당자를 찾을 수 없습니다" });
@@ -161,7 +173,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = adminLoginSchema.parse(req.body);
 
-      const staff = await storage.getAdminStaff(validatedData.staffId);
+      // Validate security code
+      const ADMIN_SECURITY_CODE = "13848966";
+      if (validatedData.securityCode !== ADMIN_SECURITY_CODE) {
+        return res.status(401).json({ error: "보안 코드가 일치하지 않습니다" });
+      }
+
+      const staff = await storage.getAdminStaffByName(validatedData.adminName);
       
       if (!staff) {
         return res.status(401).json({ error: "관리자를 찾을 수 없습니다" });

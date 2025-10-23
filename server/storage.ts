@@ -34,18 +34,21 @@ export interface IStorage {
   // Field Staff
   getAllFieldStaff(): Promise<FieldStaff[]>;
   getFieldStaff(id: string): Promise<FieldStaff | undefined>;
+  getFieldStaffByName(name: string): Promise<FieldStaff | undefined>;
   createFieldStaff(staff: InsertFieldStaff): Promise<FieldStaff>;
   upsertFieldStaff(staff: InsertFieldStaff): Promise<FieldStaff>;
   
   // Office Staff
   getAllOfficeStaff(): Promise<OfficeStaff[]>;
   getOfficeStaff(id: string): Promise<OfficeStaff | undefined>;
+  getOfficeStaffByName(name: string): Promise<OfficeStaff | undefined>;
   createOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
   upsertOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
   
   // Admin Staff
   getAllAdminStaff(): Promise<AdminStaff[]>;
   getAdminStaff(id: string): Promise<AdminStaff | undefined>;
+  getAdminStaffByName(name: string): Promise<AdminStaff | undefined>;
   createAdminStaff(staff: InsertAdminStaff): Promise<AdminStaff>;
   upsertAdminStaff(staff: InsertAdminStaff): Promise<AdminStaff>;
 }
@@ -161,6 +164,11 @@ export class DatabaseStorage implements IStorage {
     return staff || undefined;
   }
 
+  async getFieldStaffByName(name: string): Promise<FieldStaff | undefined> {
+    const [staff] = await db.select().from(fieldStaff).where(eq(fieldStaff.name, name));
+    return staff || undefined;
+  }
+
   async createFieldStaff(insertStaff: InsertFieldStaff): Promise<FieldStaff> {
     const [staff] = await db
       .insert(fieldStaff)
@@ -191,6 +199,11 @@ export class DatabaseStorage implements IStorage {
     return staff || undefined;
   }
 
+  async getOfficeStaffByName(name: string): Promise<OfficeStaff | undefined> {
+    const [staff] = await db.select().from(officeStaff).where(eq(officeStaff.name, name));
+    return staff || undefined;
+  }
+
   async createOfficeStaff(insertStaff: InsertOfficeStaff): Promise<OfficeStaff> {
     const [staff] = await db
       .insert(officeStaff)
@@ -218,6 +231,11 @@ export class DatabaseStorage implements IStorage {
 
   async getAdminStaff(id: string): Promise<AdminStaff | undefined> {
     const [staff] = await db.select().from(adminStaff).where(eq(adminStaff.id, id));
+    return staff || undefined;
+  }
+
+  async getAdminStaffByName(name: string): Promise<AdminStaff | undefined> {
+    const [staff] = await db.select().from(adminStaff).where(eq(adminStaff.name, name));
     return staff || undefined;
   }
 
