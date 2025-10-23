@@ -55,8 +55,6 @@ export default function FieldDashboard({
   };
 
   const [formData, setFormData] = useState({
-    fieldStaff: "",
-    fieldPhone: "",
     fieldDamage: DEFAULT_FIELD_DAMAGE,
     fieldSignature: "",
     rejectionReason: "",
@@ -64,27 +62,14 @@ export default function FieldDashboard({
 
   const resetForm = () => {
     setFormData({
-      fieldStaff: "",
-      fieldPhone: "",
       fieldDamage: DEFAULT_FIELD_DAMAGE,
       fieldSignature: "",
       rejectionReason: "",
     });
   };
 
-  const handleStaffSelect = (name: string) => {
-    const staff = fieldStaffList.find(s => s.name === name);
-    if (staff) {
-      setFormData(prev => ({
-        ...prev,
-        fieldStaff: staff.name,
-        fieldPhone: staff.phone,
-      }));
-    }
-  };
-
   const handleApprove = () => {
-    if (!selectedReport || !formData.fieldStaff || !formData.fieldDamage || !formData.fieldSignature) {
+    if (!selectedReport || !formData.fieldDamage || !formData.fieldSignature) {
       toast({
         title: "입력 오류",
         description: "모든 필수 항목을 입력해주세요.",
@@ -94,13 +79,14 @@ export default function FieldDashboard({
     }
 
     onApprove(selectedReport.id, {
-      fieldStaff: formData.fieldStaff,
-      fieldPhone: formData.fieldPhone,
+      fieldStaff: fieldName,
+      fieldPhone: fieldPhone,
       fieldDamage: formData.fieldDamage,
       fieldSignature: formData.fieldSignature,
     });
 
     setIsReviewing(false);
+    setIsReviewingRejected(false);
     setSelectedReport(null);
     resetForm();
   };
@@ -117,6 +103,7 @@ export default function FieldDashboard({
 
     onReject(selectedReport.id, formData.rejectionReason);
     setIsRejecting(false);
+    setIsReviewingRejected(false);
     setSelectedReport(null);
     resetForm();
   };
@@ -351,23 +338,9 @@ export default function FieldDashboard({
               <div className="space-y-4">
                 <h3 className="font-semibold">현장 검토 의견</h3>
 
-                <div className="space-y-2">
-                  <Label htmlFor="field-staff">현장 담당자 *</Label>
-                  <Select
-                    value={formData.fieldStaff}
-                    onValueChange={handleStaffSelect}
-                  >
-                    <SelectTrigger id="field-staff" data-testid="select-field-staff">
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fieldStaffList.map((staff) => (
-                        <SelectItem key={staff.id} value={staff.name}>
-                          {staff.name} - {staff.phone}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2 p-4 bg-chart-2/10 rounded-md">
+                  <p className="text-sm font-medium">현장 담당자</p>
+                  <p className="text-base font-semibold">{fieldName} ({fieldPhone})</p>
                 </div>
 
                 <div className="space-y-2">
@@ -397,7 +370,7 @@ export default function FieldDashboard({
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={handleApprove}
-                  disabled={!formData.fieldStaff || !formData.fieldDamage || !formData.fieldSignature}
+                  disabled={!formData.fieldDamage || !formData.fieldSignature}
                   className="flex-1 bg-chart-4 hover:bg-chart-4/90 text-white"
                   data-testid="button-approve"
                 >
@@ -541,23 +514,9 @@ export default function FieldDashboard({
               <div className="space-y-4">
                 <h3 className="font-semibold">현장 검토 의견</h3>
 
-                <div className="space-y-2">
-                  <Label htmlFor="field-staff-rejected">현장 담당자 *</Label>
-                  <Select
-                    value={formData.fieldStaff}
-                    onValueChange={handleStaffSelect}
-                  >
-                    <SelectTrigger id="field-staff-rejected" data-testid="select-field-staff-rejected">
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fieldStaffList.map((staff) => (
-                        <SelectItem key={staff.id} value={staff.name}>
-                          {staff.name} - {staff.phone}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2 p-4 bg-chart-2/10 rounded-md">
+                  <p className="text-sm font-medium">현장 담당자</p>
+                  <p className="text-base font-semibold">{fieldName} ({fieldPhone})</p>
                 </div>
 
                 <div className="space-y-2">
@@ -587,7 +546,7 @@ export default function FieldDashboard({
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={handleApprove}
-                  disabled={!formData.fieldStaff || !formData.fieldDamage || !formData.fieldSignature}
+                  disabled={!formData.fieldDamage || !formData.fieldSignature}
                   className="flex-1 bg-chart-4 hover:bg-chart-4/90 text-white"
                   data-testid="button-resubmit"
                 >

@@ -54,8 +54,6 @@ export default function OfficeDashboard({
   };
 
   const [formData, setFormData] = useState({
-    officeStaff: "",
-    officePhone: "",
     officeDamage: DEFAULT_OFFICE_DAMAGE,
     officeSignature: "",
     rejectionReason: "",
@@ -63,27 +61,14 @@ export default function OfficeDashboard({
 
   const resetForm = () => {
     setFormData({
-      officeStaff: "",
-      officePhone: "",
       officeDamage: DEFAULT_OFFICE_DAMAGE,
       officeSignature: "",
       rejectionReason: "",
     });
   };
 
-  const handleStaffSelect = (name: string) => {
-    const staff = officeStaffList.find(s => s.name === name);
-    if (staff) {
-      setFormData(prev => ({
-        ...prev,
-        officeStaff: staff.name,
-        officePhone: staff.phone,
-      }));
-    }
-  };
-
   const handleApprove = () => {
-    if (!selectedReport || !formData.officeStaff || !formData.officeDamage || !formData.officeSignature) {
+    if (!selectedReport || !formData.officeDamage || !formData.officeSignature) {
       toast({
         title: "입력 오류",
         description: "모든 필수 항목을 입력해주세요.",
@@ -93,8 +78,8 @@ export default function OfficeDashboard({
     }
 
     onApprove(selectedReport.id, {
-      officeStaff: formData.officeStaff,
-      officePhone: formData.officePhone,
+      officeStaff: officeName,
+      officePhone: officePhone,
       officeDamage: formData.officeDamage,
       officeSignature: formData.officeSignature,
     });
@@ -347,36 +332,9 @@ export default function OfficeDashboard({
               <div className="space-y-4">
                 <h3 className="font-semibold">사무실 최종 승인</h3>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="office-staff">사무실 담당자 *</Label>
-                    <Select
-                      value={formData.officeStaff}
-                      onValueChange={handleStaffSelect}
-                    >
-                      <SelectTrigger id="office-staff" data-testid="select-office-staff">
-                        <SelectValue placeholder="선택하세요" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {officeStaffList.map((staff) => (
-                          <SelectItem key={staff.id} value={staff.name}>
-                            {staff.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="office-phone">연락처</Label>
-                    <Input
-                      id="office-phone"
-                      value={formData.officePhone}
-                      readOnly
-                      className="bg-muted"
-                      data-testid="input-office-phone"
-                    />
-                  </div>
+                <div className="space-y-2 p-4 bg-chart-1/10 rounded-md">
+                  <p className="text-sm font-medium">사무실 담당자</p>
+                  <p className="text-base font-semibold">{officeName} ({officePhone})</p>
                 </div>
 
                 <div className="space-y-2">
@@ -406,7 +364,7 @@ export default function OfficeDashboard({
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={handleApprove}
-                  disabled={!formData.officeStaff || !formData.officeDamage || !formData.officeSignature}
+                  disabled={!formData.officeDamage || !formData.officeSignature}
                   className="flex-1 bg-chart-4 hover:bg-chart-4/90 text-white"
                   data-testid="button-approve"
                 >
