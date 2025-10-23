@@ -120,23 +120,6 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
           </div>
         )}
 
-        {/* Field Section */}
-        {report.fieldStaff && showAllDetails && (
-          <div className="bg-chart-2/5 rounded-md p-3 space-y-1">
-            <p className="text-xs font-semibold text-chart-2">
-              현장: {report.fieldStaff}
-            </p>
-            <p className="text-xs text-foreground line-clamp-2">
-              {report.fieldDamage}
-            </p>
-            {report.fieldSubmittedAt && (
-              <p className="text-xs text-muted-foreground">
-                확인: {formatDateTime(report.fieldSubmittedAt)}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Office Section */}
         {report.officeStaff && showAllDetails && (
           <div className="bg-chart-1/5 rounded-md p-3 space-y-1">
