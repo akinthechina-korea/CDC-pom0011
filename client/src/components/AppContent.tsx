@@ -4,13 +4,14 @@ import DriverLogin from "@/pages/DriverLogin";
 import DriverDashboard from "@/pages/DriverDashboard";
 import FieldDashboard from "@/pages/FieldDashboard";
 import OfficeDashboard from "@/pages/OfficeDashboard";
+import AdminDashboard from "@/pages/AdminDashboard";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import type { Report, Vehicle, Cargo, FieldStaff, OfficeStaff } from "@shared/schema";
 
-type Role = '' | 'driver' | 'field' | 'office';
+type Role = '' | 'driver' | 'field' | 'office' | 'admin';
 
 interface DriverSession {
   vehicleNo: string;
@@ -309,6 +310,14 @@ export default function AppContent() {
         onBack={() => setCurrentRole('')}
         onApprove={(reportId, data) => officeApproveMutation.mutate({ reportId, data })}
         onDownloadReport={handleDownloadReport}
+      />
+    );
+  }
+
+  if (currentRole === 'admin') {
+    return (
+      <AdminDashboard
+        onBack={() => setCurrentRole('')}
       />
     );
   }

@@ -30,7 +30,7 @@ export type Vehicle = typeof vehicles.$inferSelect;
 export const fieldStaff = pgTable("field_staff", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  phone: text("phone").notNull(),
+  phone: text("phone").notNull().unique(),
 });
 
 export const insertFieldStaffSchema = createInsertSchema(fieldStaff).omit({ id: true });
@@ -41,7 +41,7 @@ export type FieldStaff = typeof fieldStaff.$inferSelect;
 export const officeStaff = pgTable("office_staff", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  phone: text("phone").notNull(),
+  phone: text("phone").notNull().unique(),
 });
 
 export const insertOfficeStaffSchema = createInsertSchema(officeStaff).omit({ id: true });

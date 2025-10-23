@@ -21,22 +21,26 @@ export interface IStorage {
   getAllCargo(): Promise<Cargo[]>;
   getCargo(id: string): Promise<Cargo | undefined>;
   createCargo(cargo: InsertCargo): Promise<Cargo>;
+  upsertCargo(cargo: InsertCargo): Promise<Cargo>;
   
   // Vehicles
   getAllVehicles(): Promise<Vehicle[]>;
   getVehicle(id: string): Promise<Vehicle | undefined>;
   getVehicleByNumber(vehicleNo: string): Promise<Vehicle | undefined>;
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
+  upsertVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   
   // Field Staff
   getAllFieldStaff(): Promise<FieldStaff[]>;
   getFieldStaff(id: string): Promise<FieldStaff | undefined>;
   createFieldStaff(staff: InsertFieldStaff): Promise<FieldStaff>;
+  upsertFieldStaff(staff: InsertFieldStaff): Promise<FieldStaff>;
   
   // Office Staff
   getAllOfficeStaff(): Promise<OfficeStaff[]>;
   getOfficeStaff(id: string): Promise<OfficeStaff | undefined>;
   createOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
+  upsertOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -90,6 +94,18 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
+  async upsertCargo(insertCargo: InsertCargo): Promise<Cargo> {
+    const [item] = await db
+      .insert(cargo)
+      .values(insertCargo)
+      .onConflictDoUpdate({
+        target: cargo.containerNo,
+        set: { blNo: insertCargo.blNo }
+      })
+      .returning();
+    return item;
+  }
+
   // Vehicles
   async getAllVehicles(): Promise<Vehicle[]> {
     return await db.select().from(vehicles);
@@ -113,6 +129,21 @@ export class DatabaseStorage implements IStorage {
     return vehicle;
   }
 
+  async upsertVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
+    const [vehicle] = await db
+      .insert(vehicles)
+      .values(insertVehicle)
+      .onConflictDoUpdate({
+        target: vehicles.vehicleNo,
+        set: { 
+          driverName: insertVehicle.driverName,
+          driverPhone: insertVehicle.driverPhone
+        }
+      })
+      .returning();
+    return vehicle;
+  }
+
   // Field Staff
   async getAllFieldStaff(): Promise<FieldStaff[]> {
     return await db.select().from(fieldStaff);
@@ -131,6 +162,18 @@ export class DatabaseStorage implements IStorage {
     return staff;
   }
 
+  async upsertFieldStaff(insertStaff: InsertFieldStaff): Promise<FieldStaff> {
+    const [staff] = await db
+      .insert(fieldStaff)
+      .values(insertStaff)
+      .onConflictDoUpdate({
+        target: fieldStaff.phone,
+        set: { name: insertStaff.name }
+      })
+      .returning();
+    return staff;
+  }
+
   // Office Staff
   async getAllOfficeStaff(): Promise<OfficeStaff[]> {
     return await db.select().from(officeStaff);
@@ -145,6 +188,18 @@ export class DatabaseStorage implements IStorage {
     const [staff] = await db
       .insert(officeStaff)
       .values(insertStaff)
+      .returning();
+    return staff;
+  }
+
+  async upsertOfficeStaff(insertStaff: InsertOfficeStaff): Promise<OfficeStaff> {
+    const [staff] = await db
+      .insert(officeStaff)
+      .values(insertStaff)
+      .onConflictDoUpdate({
+        target: officeStaff.phone,
+        set: { name: insertStaff.name }
+      })
       .returning();
     return staff;
   }

@@ -4,7 +4,11 @@ import { storage } from "./storage";
 import { 
   insertReportSchema, 
   fieldReviewSchema, 
-  officeApprovalSchema 
+  officeApprovalSchema,
+  insertCargoSchema,
+  insertVehicleSchema,
+  insertFieldStaffSchema,
+  insertOfficeStaffSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -82,6 +86,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(staff);
     } catch (error) {
       res.status(500).json({ error: "사무실 담당자 데이터 조회 실패" });
+    }
+  });
+
+  // Bulk upload endpoints for admin
+  
+  // Bulk upload cargo
+  app.post("/api/data/cargo/bulk", async (req, res) => {
+    try {
+      const items = z.array(insertCargoSchema).parse(req.body);
+      const created = [];
+      
+      for (const item of items) {
+        const cargo = await storage.upsertCargo(item);
+        created.push(cargo);
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        count: created.length,
+        items: created 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "화물 데이터 업로드 실패" });
+    }
+  });
+
+  // Bulk upload vehicles
+  app.post("/api/data/vehicles/bulk", async (req, res) => {
+    try {
+      const items = z.array(insertVehicleSchema).parse(req.body);
+      const created = [];
+      
+      for (const item of items) {
+        const vehicle = await storage.upsertVehicle(item);
+        created.push(vehicle);
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        count: created.length,
+        items: created 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "차량 데이터 업로드 실패" });
+    }
+  });
+
+  // Bulk upload field staff
+  app.post("/api/data/field-staff/bulk", async (req, res) => {
+    try {
+      const items = z.array(insertFieldStaffSchema).parse(req.body);
+      const created = [];
+      
+      for (const item of items) {
+        const staff = await storage.upsertFieldStaff(item);
+        created.push(staff);
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        count: created.length,
+        items: created 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "현장 담당자 데이터 업로드 실패" });
+    }
+  });
+
+  // Bulk upload office staff
+  app.post("/api/data/office-staff/bulk", async (req, res) => {
+    try {
+      const items = z.array(insertOfficeStaffSchema).parse(req.body);
+      const created = [];
+      
+      for (const item of items) {
+        const staff = await storage.upsertOfficeStaff(item);
+        created.push(staff);
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        count: created.length,
+        items: created 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "사무실 담당자 데이터 업로드 실패" });
     }
   });
 

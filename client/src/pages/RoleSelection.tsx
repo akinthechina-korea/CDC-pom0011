@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Truck, ClipboardCheck } from "lucide-react";
+import { FileText, Truck, ClipboardCheck, Settings } from "lucide-react";
 
 interface RoleSelectionProps {
-  onSelectRole: (role: 'driver' | 'field' | 'office') => void;
+  onSelectRole: (role: 'driver' | 'field' | 'office' | 'admin') => void;
 }
 
 export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
@@ -23,7 +23,7 @@ export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Driver Role */}
             <button
               onClick={() => onSelectRole('driver')}
@@ -81,6 +81,27 @@ export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
                     <h2 className="text-xl font-bold mb-2">사무실 책임자</h2>
                     <p className="text-sm text-muted-foreground">
                       최종 승인 및 문서 생성
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </button>
+
+            {/* Admin Role */}
+            <button
+              onClick={() => onSelectRole('admin')}
+              className="group relative overflow-visible"
+              data-testid="button-role-admin"
+            >
+              <Card className="p-8 text-center transition-all hover-elevate active-elevate-2 h-full">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                    <Settings className="w-10 h-10 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold mb-2">관리자</h2>
+                    <p className="text-sm text-muted-foreground">
+                      데이터 관리 및 설정
                     </p>
                   </div>
                 </div>
