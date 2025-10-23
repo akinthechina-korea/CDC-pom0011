@@ -202,8 +202,9 @@ export default function DriverDashboard({
                   key={report.id}
                   report={report}
                   onClick={() => {
-  setSelectedReport(report);
+                    setSelectedReport(report);
                     setFormData({
+                      reportDate: report.reportDate,
                       containerNo: report.containerNo,
                       blNo: report.blNo,
                       driverDamage: report.driverDamage,
