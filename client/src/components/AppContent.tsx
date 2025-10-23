@@ -301,6 +301,7 @@ export default function AppContent() {
         onBack={() => setCurrentRole('')}
         onApprove={(reportId, data) => fieldApproveMutation.mutate({ reportId, data })}
         onReject={(reportId, reason) => fieldRejectMutation.mutate({ reportId, reason })}
+        onDownloadReport={handleDownloadReport}
       />
     );
   }

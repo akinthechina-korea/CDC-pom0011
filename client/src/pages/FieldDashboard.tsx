@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardCheck, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { ClipboardCheck, ArrowLeft, CheckCircle, XCircle, Download } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { useToast } from "@/hooks/use-toast";
 import type { Report, FieldStaff } from "@shared/schema";
@@ -26,6 +26,7 @@ interface FieldDashboardProps {
     fieldSignature: string;
   }) => void;
   onReject: (reportId: string, reason: string) => void;
+  onDownloadReport: (reportId: string) => void;
 }
 
 export default function FieldDashboard({
@@ -34,6 +35,7 @@ export default function FieldDashboard({
   onBack,
   onApprove,
   onReject,
+  onDownloadReport,
 }: FieldDashboardProps) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isReviewing, setIsReviewing] = useState(false);
@@ -115,7 +117,7 @@ export default function FieldDashboard({
   };
 
   // 검토 대기: 기사 제출 시간 기준 최신순
-  const pendingReports = reports
+  const pendingReviewReports = reports
     .filter(r => r.status === 'driver_submitted')
     .sort((a, b) => {
       const timeA = a.driverSubmittedAt ? new Date(a.driverSubmittedAt).getTime() : 0;
@@ -123,16 +125,31 @@ export default function FieldDashboard({
       return timeB - timeA;
     });
   
-  // 검토 완료: 현장 확인/최종 승인 시간 기준 최신순
-  const reviewedReports = reports
-    .filter(r => r.status === 'field_submitted' || r.status === 'completed')
+  // 승인 대기: 현장 확인 시간 기준 최신순
+  const pendingApprovalReports = reports
+    .filter(r => r.status === 'field_submitted')
     .sort((a, b) => {
-      const getRelevantTime = (report: Report) => {
-        if (report.status === 'completed' && report.completedAt) return new Date(report.completedAt).getTime();
-        if (report.fieldSubmittedAt) return new Date(report.fieldSubmittedAt).getTime();
-        return 0;
-      };
-      return getRelevantTime(b) - getRelevantTime(a);
+      const timeA = a.fieldSubmittedAt ? new Date(a.fieldSubmittedAt).getTime() : 0;
+      const timeB = b.fieldSubmittedAt ? new Date(b.fieldSubmittedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 승인 완료: 최종 승인 시간 기준 최신순
+  const completedReports = reports
+    .filter(r => r.status === 'completed')
+    .sort((a, b) => {
+      const timeA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+      const timeB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 반려: 반려 시간 기준 최신순
+  const rejectedReports = reports
+    .filter(r => r.status === 'rejected')
+    .sort((a, b) => {
+      const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
+      const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
+      return timeB - timeA;
     });
 
   return (
@@ -166,19 +183,25 @@ export default function FieldDashboard({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="pending" data-testid="tab-pending">
-              검토 대기 ({pendingReports.length})
+        <Tabs defaultValue="pending-review" className="space-y-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
+            <TabsTrigger value="pending-review" data-testid="tab-pending-review">
+              검토대기 ({pendingReviewReports.length})
             </TabsTrigger>
-            <TabsTrigger value="reviewed" data-testid="tab-reviewed">
-              검토 완료 ({reviewedReports.length})
+            <TabsTrigger value="pending-approval" data-testid="tab-pending-approval">
+              승인대기 ({pendingApprovalReports.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed" data-testid="tab-completed">
+              승인완료 ({completedReports.length})
+            </TabsTrigger>
+            <TabsTrigger value="rejected" data-testid="tab-rejected">
+              반려 ({rejectedReports.length})
             </TabsTrigger>
           </TabsList>
 
-          {/* Pending Reports */}
-          <TabsContent value="pending" className="space-y-4">
-            {pendingReports.length === 0 ? (
+          {/* Pending Review Reports */}
+          <TabsContent value="pending-review" className="space-y-4">
+            {pendingReviewReports.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <ClipboardCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -187,7 +210,7 @@ export default function FieldDashboard({
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingReports.map((report) => (
+                {pendingReviewReports.map((report) => (
                   <ReportCard
                     key={report.id}
                     report={report}
@@ -202,18 +225,64 @@ export default function FieldDashboard({
             )}
           </TabsContent>
 
-          {/* Reviewed Reports */}
-          <TabsContent value="reviewed" className="space-y-4">
-            {reviewedReports.length === 0 ? (
+          {/* Pending Approval Reports */}
+          <TabsContent value="pending-approval" className="space-y-4">
+            {pendingApprovalReports.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
                   <ClipboardCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">검토 완료된 보고서가 없습니다.</p>
+                  <p className="text-muted-foreground">승인 대기 중인 보고서가 없습니다.</p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {reviewedReports.map((report) => (
+                {pendingApprovalReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelectedReport(report)}
+                    showAllDetails={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Completed Reports */}
+          <TabsContent value="completed" className="space-y-4">
+            {completedReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <ClipboardCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">승인 완료된 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {completedReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelectedReport(report)}
+                    showAllDetails={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Rejected Reports */}
+          <TabsContent value="rejected" className="space-y-4">
+            {rejectedReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <ClipboardCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">반려된 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {rejectedReports.map((report) => (
                   <ReportCard
                     key={report.id}
                     report={report}
@@ -481,6 +550,17 @@ export default function FieldDashboard({
                     </p>
                   </CardContent>
                 </Card>
+              )}
+
+              {selectedReport.status === 'completed' && (
+                <Button
+                  onClick={() => onDownloadReport(selectedReport.id)}
+                  className="w-full"
+                  data-testid="button-download"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  확인서 다운로드
+                </Button>
               )}
             </div>
           )}

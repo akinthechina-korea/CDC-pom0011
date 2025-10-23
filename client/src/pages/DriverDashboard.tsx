@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, Plus, ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { PhotoUploader } from "@/components/PhotoUploader";
@@ -134,26 +135,40 @@ export default function DriverDashboard({
 
   const myReports = reports.filter(r => r.vehicleNo === vehicleNo);
   
-  // 반려된 보고서: 반려 시간 기준 최신순
+  // 검토 대기: 기사 제출 시간 기준 최신순
+  const pendingReviewReports = myReports
+    .filter(r => r.status === 'driver_submitted')
+    .sort((a, b) => {
+      const timeA = a.driverSubmittedAt ? new Date(a.driverSubmittedAt).getTime() : 0;
+      const timeB = b.driverSubmittedAt ? new Date(b.driverSubmittedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 검토 완료: 현장 확인 시간 기준 최신순
+  const reviewedReports = myReports
+    .filter(r => r.status === 'field_submitted')
+    .sort((a, b) => {
+      const timeA = a.fieldSubmittedAt ? new Date(a.fieldSubmittedAt).getTime() : 0;
+      const timeB = b.fieldSubmittedAt ? new Date(b.fieldSubmittedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 승인 완료: 최종 승인 시간 기준 최신순
+  const completedReports = myReports
+    .filter(r => r.status === 'completed')
+    .sort((a, b) => {
+      const timeA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+      const timeB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 반려: 반려 시간 기준 최신순
   const rejectedReports = myReports
     .filter(r => r.status === 'rejected')
     .sort((a, b) => {
       const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
       const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
       return timeB - timeA;
-    });
-  
-  // 기타 보고서: 제출/승인 시간 기준 최신순
-  const otherReports = myReports
-    .filter(r => r.status !== 'rejected')
-    .sort((a, b) => {
-      const getRelevantTime = (report: Report) => {
-        if (report.status === 'completed' && report.completedAt) return new Date(report.completedAt).getTime();
-        if (report.status === 'field_submitted' && report.fieldSubmittedAt) return new Date(report.fieldSubmittedAt).getTime();
-        if (report.driverSubmittedAt) return new Date(report.driverSubmittedAt).getTime();
-        return new Date(report.createdAt).getTime();
-      };
-      return getRelevantTime(b) - getRelevantTime(a);
     });
 
   return (
@@ -190,9 +205,9 @@ export default function DriverDashboard({
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Create New Report Button */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">내 보고서</h2>
           <Button
             onClick={() => setIsCreating(true)}
@@ -204,79 +219,139 @@ export default function DriverDashboard({
           </Button>
         </div>
 
-        {/* Rejected Reports Alert */}
-        {rejectedReports.length > 0 && (
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-destructive" />
-                <CardTitle className="text-base">반려된 보고서 {rejectedReports.length}건</CardTitle>
+        <Tabs defaultValue="pending-review" className="space-y-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
+            <TabsTrigger value="pending-review" data-testid="tab-pending-review">
+              검토대기 ({pendingReviewReports.length})
+            </TabsTrigger>
+            <TabsTrigger value="reviewed" data-testid="tab-reviewed">
+              검토완료 ({reviewedReports.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed" data-testid="tab-completed">
+              승인완료 ({completedReports.length})
+            </TabsTrigger>
+            <TabsTrigger value="rejected" data-testid="tab-rejected">
+              반려 ({rejectedReports.length})
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Pending Review Reports */}
+          <TabsContent value="pending-review" className="space-y-4">
+            {pendingReviewReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">검토 대기 중인 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pendingReviewReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelectedReport(report)}
+                    showAllDetails={true}
+                  />
+                ))}
               </div>
-              <CardDescription>
-                아래 보고서를 수정하여 재제출해주세요.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+            )}
+          </TabsContent>
 
-        {/* Rejected Reports */}
-        {rejectedReports.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-destructive">반려된 보고서</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rejectedReports.map((report) => (
-                <ReportCard
-                  key={report.id}
-                  report={report}
-                  onClick={() => {
-                    setSelectedReport(report);
-                    setFormData({
-                      reportDate: report.reportDate,
-                      containerNo: report.containerNo,
-                      blNo: report.blNo,
-                      driverDamage: report.driverDamage,
-                      driverSignature: report.driverSignature,
-                      damagePhotos: report.damagePhotos || [],
-                    });
-                    setIsEditing(true);
-                  }}
-                  showAllDetails={false}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+          {/* Reviewed Reports */}
+          <TabsContent value="reviewed" className="space-y-4">
+            {reviewedReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">검토 완료된 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {reviewedReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelectedReport(report)}
+                    showAllDetails={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* Other Reports */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">전체 보고서</h3>
-          {otherReports.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">아직 제출한 보고서가 없습니다.</p>
-                <Button
-                  onClick={() => setIsCreating(true)}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  첫 보고서 작성하기
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {otherReports.map((report) => (
-                <ReportCard
-                  key={report.id}
-                  report={report}
-                  onClick={() => setSelectedReport(report)}
-                  showAllDetails={true}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+          {/* Completed Reports */}
+          <TabsContent value="completed" className="space-y-4">
+            {completedReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">승인 완료된 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {completedReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelectedReport(report)}
+                    showAllDetails={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Rejected Reports */}
+          <TabsContent value="rejected" className="space-y-4">
+            {rejectedReports.length > 0 && (
+              <Card className="border-destructive/50 bg-destructive/5 mb-4">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-destructive" />
+                    <CardTitle className="text-base">반려된 보고서 {rejectedReports.length}건</CardTitle>
+                  </div>
+                  <CardDescription>
+                    아래 보고서를 수정하여 재제출해주세요.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            )}
+
+            {rejectedReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Truck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">반려된 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {rejectedReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => {
+                      setSelectedReport(report);
+                      setFormData({
+                        reportDate: report.reportDate,
+                        containerNo: report.containerNo,
+                        blNo: report.blNo,
+                        driverDamage: report.driverDamage,
+                        driverSignature: report.driverSignature,
+                        damagePhotos: report.damagePhotos || [],
+                      });
+                      setIsEditing(true);
+                    }}
+                    showAllDetails={false}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Create Report Dialog */}
