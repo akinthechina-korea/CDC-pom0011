@@ -8,6 +8,7 @@ export const cargo = pgTable("cargo", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   containerNo: text("container_no").notNull().unique(),
   blNo: text("bl_no").notNull(),
+  date: text("date").notNull(),
 });
 
 export const insertCargoSchema = createInsertSchema(cargo).omit({ id: true });

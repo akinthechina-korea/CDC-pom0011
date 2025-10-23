@@ -15,9 +15,9 @@ async function seed() {
 
     // Seed Cargo
     await db.insert(cargo).values([
-      { containerNo: 'TCLU8239466', blNo: 'CHL20251001' },
-      { containerNo: 'MSKU4598321', blNo: 'CHL20251002' },
-      { containerNo: 'TEMU6198324', blNo: 'CHL20251003' },
+      { containerNo: 'TCLU8239466', blNo: 'CHL20251001', date: '2025-10-01' },
+      { containerNo: 'MSKU4598321', blNo: 'CHL20251002', date: '2025-10-02' },
+      { containerNo: 'TEMU6198324', blNo: 'CHL20251003', date: '2025-10-03' },
     ]);
     console.log("✓ Seeded cargo data");
 

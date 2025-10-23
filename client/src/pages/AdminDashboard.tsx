@@ -19,7 +19,7 @@ type DataType = 'cargo' | 'vehicles' | 'field-staff' | 'office-staff';
 
 export default function AdminDashboard({ onBack }: AdminDashboardProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<DataType>('cargo');
+  const [activeTab, setActiveTab] = useState<DataType>('vehicles');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
@@ -102,10 +102,10 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
   const validateRow = (type: DataType, row: any): { valid: boolean; data?: any; error?: string } => {
     switch (type) {
       case 'cargo':
-        if (!row.containerNo || !row.blNo) {
-          return { valid: false, error: "containerNo, blNo 필드가 필요합니다" };
+        if (!row.containerNo || !row.blNo || !row.date) {
+          return { valid: false, error: "containerNo, blNo, date 필드가 필요합니다" };
         }
-        return { valid: true, data: { containerNo: row.containerNo, blNo: row.blNo } };
+        return { valid: true, data: { containerNo: row.containerNo, blNo: row.blNo, date: row.date } };
 
       case 'vehicles':
         if (!row.vehicleNo || !row.driverName || !row.driverPhone) {
@@ -144,8 +144,8 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
 
     switch (type) {
       case 'cargo':
-        headers = ['containerNo', 'blNo'];
-        sampleRow = ['TCLU8239466', 'CHL20251001'];
+        headers = ['containerNo', 'blNo', 'date'];
+        sampleRow = ['TCLU8239466', 'CHL20251001', '2025-10-01'];
         break;
       case 'vehicles':
         headers = ['vehicleNo', 'driverName', 'driverPhone'];
@@ -195,6 +195,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
               <>
                 <TableHead>컨테이너 번호</TableHead>
                 <TableHead>B/L 번호</TableHead>
+                <TableHead>년월일</TableHead>
               </>
             )}
             {type === 'vehicles' && (
@@ -219,6 +220,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
                 <>
                   <TableCell>{item.containerNo}</TableCell>
                   <TableCell>{item.blNo}</TableCell>
+                  <TableCell>{item.date}</TableCell>
                 </>
               )}
               {type === 'vehicles' && (
@@ -243,7 +245,7 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   const getTabLabel = (type: DataType) => {
     switch (type) {
-      case 'cargo': return '컨테이너/화물';
+      case 'cargo': return '화물';
       case 'vehicles': return '차량/운송기사';
       case 'field-staff': return '현장 담당자';
       case 'office-staff': return '사무실 담당자';
@@ -276,13 +278,13 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DataType)}>
           <TabsList className="grid grid-cols-4 w-full max-w-2xl mb-6">
-            <TabsTrigger value="cargo">컨테이너</TabsTrigger>
             <TabsTrigger value="vehicles">차량</TabsTrigger>
-            <TabsTrigger value="field-staff">현장 담당자</TabsTrigger>
-            <TabsTrigger value="office-staff">사무실 담당자</TabsTrigger>
+            <TabsTrigger value="cargo">화물</TabsTrigger>
+            <TabsTrigger value="field-staff">현장</TabsTrigger>
+            <TabsTrigger value="office-staff">사무실</TabsTrigger>
           </TabsList>
 
-          {(['cargo', 'vehicles', 'field-staff', 'office-staff'] as DataType[]).map((type) => (
+          {(['vehicles', 'cargo', 'field-staff', 'office-staff'] as DataType[]).map((type) => (
             <TabsContent key={type} value={type} className="space-y-6">
               {/* Upload Section */}
               <Card className="p-6">
