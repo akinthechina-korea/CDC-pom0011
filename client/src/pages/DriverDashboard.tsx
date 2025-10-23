@@ -208,8 +208,8 @@ export default function DriverDashboard({
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Tabs defaultValue="pending-review" className="space-y-6">
-          <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
-            <TabsList className="grid grid-cols-4" style={{ width: '768px', maxWidth: '100%' }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+            <TabsList className="grid grid-cols-4 w-full sm:w-auto sm:mx-auto md:max-w-3xl">
               <TabsTrigger value="pending-review" data-testid="tab-pending-review">
                 검토대기 ({pendingReviewReports.length})
               </TabsTrigger>
@@ -225,7 +225,7 @@ export default function DriverDashboard({
             </TabsList>
             <Button
               onClick={() => setIsCreating(true)}
-              className="bg-driver hover:bg-driver/90 text-driver-foreground"
+              className="bg-driver hover:bg-driver/90 text-driver-foreground w-full sm:w-auto"
               data-testid="button-create-report"
             >
               <Plus className="w-4 h-4 mr-2" />

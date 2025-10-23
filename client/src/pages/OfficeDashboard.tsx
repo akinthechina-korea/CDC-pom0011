@@ -158,7 +158,7 @@ export default function OfficeDashboard({
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid grid-cols-2 mx-auto" style={{ width: '512px', maxWidth: '100%' }}>
+          <TabsList className="grid grid-cols-2 w-full mx-auto md:max-w-lg">
             <TabsTrigger value="pending" data-testid="tab-pending">
               승인대기 ({pendingReports.length})
             </TabsTrigger>

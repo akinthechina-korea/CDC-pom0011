@@ -596,7 +596,7 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DataType)}>
-          <TabsList className="grid grid-cols-4 w-full max-w-2xl mb-6">
+          <TabsList className="grid grid-cols-4 w-full mx-auto md:max-w-2xl mb-6">
             <TabsTrigger value="vehicles">차량</TabsTrigger>
             <TabsTrigger value="cargo">화물</TabsTrigger>
             <TabsTrigger value="field-staff">현장</TabsTrigger>
