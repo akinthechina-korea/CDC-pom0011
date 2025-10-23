@@ -38,10 +38,12 @@ export default function FieldDashboard({
   const [isRejecting, setIsRejecting] = useState(false);
   const { toast } = useToast();
 
+  const DEFAULT_FIELD_DAMAGE = "현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+
   const [formData, setFormData] = useState({
     fieldStaff: "",
     fieldPhone: "",
-    fieldDamage: "",
+    fieldDamage: DEFAULT_FIELD_DAMAGE,
     fieldSignature: "",
     rejectionReason: "",
   });
@@ -50,7 +52,7 @@ export default function FieldDashboard({
     setFormData({
       fieldStaff: "",
       fieldPhone: "",
-      fieldDamage: "",
+      fieldDamage: DEFAULT_FIELD_DAMAGE,
       fieldSignature: "",
       rejectionReason: "",
     });

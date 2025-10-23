@@ -51,10 +51,12 @@ export default function DriverDashboard({
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
+  const DEFAULT_DRIVER_DAMAGE = "기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+
   const [formData, setFormData] = useState({
     containerNo: "",
     blNo: "",
-    driverDamage: "",
+    driverDamage: DEFAULT_DRIVER_DAMAGE,
     driverSignature: "",
     damagePhotos: [] as string[],
   });
@@ -63,7 +65,7 @@ export default function DriverDashboard({
     setFormData({
       containerNo: "",
       blNo: "",
-      driverDamage: "",
+      driverDamage: DEFAULT_DRIVER_DAMAGE,
       driverSignature: "",
       damagePhotos: [],
     });

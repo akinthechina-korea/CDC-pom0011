@@ -37,10 +37,12 @@ export default function OfficeDashboard({
   const [isApproving, setIsApproving] = useState(false);
   const { toast } = useToast();
 
+  const DEFAULT_OFFICE_DAMAGE = "현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+
   const [formData, setFormData] = useState({
     officeStaff: "",
     officePhone: "",
-    officeDamage: "",
+    officeDamage: DEFAULT_OFFICE_DAMAGE,
     officeSignature: "",
   });
 
@@ -48,7 +50,7 @@ export default function OfficeDashboard({
     setFormData({
       officeStaff: "",
       officePhone: "",
-      officeDamage: "",
+      officeDamage: DEFAULT_OFFICE_DAMAGE,
       officeSignature: "",
     });
   };
