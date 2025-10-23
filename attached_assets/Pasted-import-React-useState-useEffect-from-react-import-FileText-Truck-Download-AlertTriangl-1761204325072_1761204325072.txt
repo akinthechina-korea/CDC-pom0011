@@ -1,0 +1,996 @@
+import React, { useState, useEffect } from 'react';
+import { FileText, Truck, Download, AlertTriangle, ArrowLeft, XCircle } from 'lucide-react';
+
+export default function ContainerDamageReport() {
+  const [currentRole, setCurrentRole] = useState('');
+  const [cargoData, setCargoData] = useState([]);
+  const [vehicleData, setVehicleData] = useState([]);
+  const [fieldData, setFieldData] = useState([]);
+  const [officeData, setOfficeData] = useState([]);
+  
+  const [reports, setReports] = useState([]);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'detail'
+  
+  const [filesUploaded, setFilesUploaded] = useState({
+    cargo: false, vehicle: false, field: false, office: false
+  });
+
+  const [formData, setFormData] = useState({
+    containerNo: '', blNo: '', vehicleNo: '', driverName: '', driverPhone: '',
+    fieldStaff: '', fieldPhone: '', officeStaff: '', officePhone: '',
+    driverDamage: '', fieldDamage: '', officeDamage: '',
+    driverSignature: '', fieldSignature: '', officeSignature: '',
+    status: 'draft',
+    createdAt: null, driverSubmittedAt: null, fieldSubmittedAt: null, completedAt: null
+  });
+
+  const [driverLogin, setDriverLogin] = useState({
+    loggedIn: false,
+    vehicleNo: '',
+    password: ''
+  });
+
+  useEffect(() => {
+    const sampleCargo = [
+      {'Container No.': 'TCLU8239466', 'B/L No.': 'CHL20251001'},
+      {'Container No.': 'MSKU4598321', 'B/L No.': 'CHL20251002'},
+      {'Container No.': 'TEMU6198324', 'B/L No.': 'CHL20251003'}
+    ];
+
+    const sampleVehicle = [
+      {'차량번호': '89하1234', '운송기사': '박영호', '연락처 번호': '010-9942-1118'},
+      {'차량번호': '81머5532', '운송기사': '최민재', '연락처 번호': '010-7102-9983'},
+      {'차량번호': '83기9224', '운송기사': '오세민', '연락처 번호': '010-2994-8821'}
+    ];
+
+    const sampleField = [
+      {'현장직원': '김도훈', '연락처 번호': '010-2384-1156'},
+      {'현장직원': '장지윤', '연락처 번호': '010-5529-6681'},
+      {'현장직원': '정현준', '연락처 번호': '010-7132-2248'}
+    ];
+
+    const sampleOffice = [
+      {'사무실직원': '이수진', '연락처 번호': '010-4941-7742'},
+      {'사무실직원': '박지연', '연락처 번호': '010-9321-4482'},
+      {'사무실직원': '김민하', '연락처 번호': '010-844-9931'}
+    ];
+
+    setCargoData(sampleCargo);
+    setVehicleData(sampleVehicle);
+    setFieldData(sampleField);
+    setOfficeData(sampleOffice);
+    setFilesUploaded({ cargo: true, vehicle: true, field: true, office: true });
+  }, []);
+
+  const handleDriverLogin = () => {
+    const vehicle = vehicleData.find(v => v['차량번호'] === driverLogin.vehicleNo);
+    if (!vehicle) {
+      alert('차량번호를 찾을 수 없습니다.');
+      return;
+    }
+    
+    const correctPassword = vehicle['연락처 번호'].replace(/-/g, '');
+    if (driverLogin.password === correctPassword) {
+      setDriverLogin({...driverLogin, loggedIn: true});
+      setFormData({
+        ...formData,
+        vehicleNo: vehicle['차량번호'],
+        driverName: vehicle['운송기사'],
+        driverPhone: vehicle['연락처 번호']
+      });
+      alert(`${vehicle['운송기사']}님, 로그인 되었습니다.`);
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  };
+
+  const createNewReport = () => {
+    const newReport = {
+      id: Date.now(),
+      containerNo: formData.containerNo,
+      blNo: formData.blNo,
+      vehicleNo: formData.vehicleNo,
+      driverName: formData.driverName,
+      driverPhone: formData.driverPhone,
+      driverDamage: formData.driverDamage,
+      driverSignature: formData.driverSignature,
+      fieldStaff: '',
+      fieldPhone: '',
+      fieldDamage: '',
+      fieldSignature: '',
+      officeStaff: '',
+      officePhone: '',
+      officeDamage: '',
+      officeSignature: '',
+      status: 'driver_submitted',
+      driverSubmittedAt: new Date().toISOString(),
+      rejectionReason: ''
+    };
+    setReports([newReport, ...reports]);
+    setFormData({
+      ...formData,
+      containerNo: '', 
+      blNo: '', 
+      driverDamage: '', 
+      driverSignature: ''
+    });
+    alert('기사 보고서 제출 완료!');
+  };
+
+  const updateReport = (reportId) => {
+    setReports(reports.map(r => {
+      if (r.id === reportId) {
+        return {
+          ...r,
+          containerNo: formData.containerNo,
+          blNo: formData.blNo,
+          driverDamage: formData.driverDamage,
+          driverSignature: formData.driverSignature,
+          status: 'driver_submitted',
+          driverSubmittedAt: new Date().toISOString(),
+          rejectionReason: ''
+        };
+      }
+      return r;
+    }));
+    setSelectedReport(null);
+    setViewMode('list');
+    setFormData({
+      ...formData,
+      containerNo: '', 
+      blNo: '', 
+      driverDamage: '', 
+      driverSignature: ''
+    });
+    alert('보고서 수정 및 재제출 완료!');
+  };
+
+  const rejectReport = (reportId, reason) => {
+    setReports(reports.map(r => {
+      if (r.id === reportId) {
+        return {
+          ...r,
+          status: 'rejected',
+          rejectionReason: reason,
+          rejectedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+    setSelectedReport(null);
+    setViewMode('list');
+    alert('보고서가 반려되었습니다.');
+  };
+
+  const submitFieldReport = (reportId) => {
+    setReports(reports.map(r => {
+      if (r.id === reportId) {
+        return {
+          ...r,
+          fieldStaff: formData.fieldStaff,
+          fieldPhone: formData.fieldPhone,
+          fieldDamage: formData.fieldDamage,
+          fieldSignature: formData.fieldSignature,
+          status: 'field_submitted',
+          fieldSubmittedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+    setSelectedReport(null);
+    setViewMode('list');
+    setFormData({
+      ...formData,
+      fieldStaff: '', 
+      fieldPhone: '', 
+      fieldDamage: '', 
+      fieldSignature: ''
+    });
+    alert('현장 보고서 제출 완료!');
+  };
+
+  const submitOfficeReport = (reportId) => {
+    setReports(reports.map(r => {
+      if (r.id === reportId) {
+        return {
+          ...r,
+          officeStaff: formData.officeStaff,
+          officePhone: formData.officePhone,
+          officeDamage: formData.officeDamage,
+          officeSignature: formData.officeSignature,
+          status: 'completed',
+          completedAt: new Date().toISOString()
+        };
+      }
+      return r;
+    }));
+    setSelectedReport(null);
+    setViewMode('list');
+    setFormData({
+      ...formData,
+      officeStaff: '', 
+      officePhone: '', 
+      officeDamage: '', 
+      officeSignature: ''
+    });
+    alert('사무실 승인 완료!');
+  };
+
+  const generatePDF = (report) => {
+    const dateStr = new Date(report.completedAt).toLocaleString('ko-KR');
+    const content = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+수 입 에 서 통 관 하 여 배 송 까 지 천 일 국 제 물 류 에 서 책 임 집 니 다
+
+(株)天 一 國 際 物 流
+경기도 평택시 포승읍 평택항로 95
+TEL: 031-683-7040, FAX: 031-683-7044
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+발 신: ${report.officeStaff}
+제 목: 컨테이너 DAMAGE의 건
+
+Container No.: ${report.containerNo}
+B/L No.: ${report.blNo}
+차량 번호: ${report.vehicleNo}
+운송 기사: ${report.driverName}
+
+파손 유형:
+
+1. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을 컨테이너 운송 기사님과 확인하였습니다.
+
+2. 당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.
+
+3. 상기와 같이 확인 합니다.
+
+[운송기사] ${report.driverDamage}
+[현장책임] ${report.fieldDamage}
+[사무실] ${report.officeDamage}
+
+현장책임자: ${report.fieldStaff}  서명: ${report.fieldSignature}
+사무실 책임자: ${report.officeStaff}  서명: ${report.officeSignature}
+작성일시: ${dateStr}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DAMAGE_${report.containerNo}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const getStatusBadge = (status) => {
+    if (status === 'driver_submitted') return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">현장대기</span>;
+    if (status === 'rejected') return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">반려됨</span>;
+    if (status === 'field_submitted') return <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">사무실대기</span>;
+    if (status === 'completed') return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">완료</span>;
+    return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">작성중</span>;
+  };
+
+  const renderReportCard = (r, isClickable = true) => (
+    <div 
+      key={r.id} 
+      className={`border-2 rounded-lg p-4 transition ${isClickable ? 'hover:shadow-lg cursor-pointer' : ''}`}
+      onClick={isClickable ? () => {
+        setSelectedReport(r);
+        setViewMode('detail');
+      } : undefined}
+    >
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <p className="font-bold text-lg">{r.containerNo}</p>
+          <p className="text-sm text-gray-600">{r.blNo}</p>
+        </div>
+        {getStatusBadge(r.status)}
+      </div>
+      
+      <div className="border-t pt-3 space-y-2">
+        <div className="bg-orange-50 p-2 rounded">
+          <p className="text-xs font-semibold text-orange-800">운송기사: {r.driverName} ({r.vehicleNo})</p>
+          <p className="text-xs text-gray-700 mt-1 line-clamp-2">{r.driverDamage}</p>
+          <p className="text-xs text-gray-400 mt-1">제출: {new Date(r.driverSubmittedAt).toLocaleString('ko-KR', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</p>
+        </div>
+        
+        {r.status === 'rejected' && (
+          <div className="bg-red-50 p-2 rounded border border-red-200">
+            <p className="text-xs font-semibold text-red-800">반려 사유:</p>
+            <p className="text-xs text-red-700 mt-1">{r.rejectionReason}</p>
+          </div>
+        )}
+        
+        {r.fieldStaff && (
+          <div className="bg-purple-50 p-2 rounded">
+            <p className="text-xs font-semibold text-purple-800">현장: {r.fieldStaff}</p>
+            <p className="text-xs text-gray-700 mt-1 line-clamp-2">{r.fieldDamage}</p>
+            {r.fieldSubmittedAt && <p className="text-xs text-gray-400 mt-1">확인: {new Date(r.fieldSubmittedAt).toLocaleString('ko-KR', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</p>}
+          </div>
+        )}
+        
+        {r.officeStaff && (
+          <div className="bg-indigo-50 p-2 rounded">
+            <p className="text-xs font-semibold text-indigo-800">사무실: {r.officeStaff}</p>
+            <p className="text-xs text-gray-700 mt-1 line-clamp-2">{r.officeDamage}</p>
+            {r.completedAt && <p className="text-xs text-gray-400 mt-1">승인: {new Date(r.completedAt).toLocaleString('ko-KR', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})}</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const allFilesUploaded = filesUploaded.cargo && filesUploaded.vehicle && filesUploaded.field && filesUploaded.office;
+
+  if (!currentRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
+        <div className="max-w-4xl w-full">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">컨테이너 DAMAGE 확인서</h1>
+            <p className="text-gray-600 mb-8">(株)天 一 國 際 物 流</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <button 
+                onClick={() => setCurrentRole('driver')}
+                className="p-8 bg-orange-500 hover:bg-orange-600 text-white rounded-lg shadow-lg transition"
+              >
+                <Truck size={48} className="mx-auto mb-4" />
+                <h2 className="text-xl font-bold">운송기사</h2>
+              </button>
+              
+              <button 
+                onClick={() => setCurrentRole('field')}
+                className="p-8 bg-purple-500 hover:bg-purple-600 text-white rounded-lg shadow-lg transition"
+              >
+                <AlertTriangle size={48} className="mx-auto mb-4" />
+                <h2 className="text-xl font-bold">현장 책임자</h2>
+              </button>
+              
+              <button 
+                onClick={() => setCurrentRole('office')}
+                className="p-8 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-lg transition"
+              >
+                <FileText size={48} className="mx-auto mb-4" />
+                <h2 className="text-xl font-bold">사무실 책임자</h2>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentRole === 'driver') {
+    if (!driverLogin.loggedIn) {
+      return (
+        <div className="min-h-screen bg-orange-50 p-4 flex items-center justify-center">
+          <div className="max-w-md w-full">
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div className="text-center mb-6">
+                <Truck className="mx-auto mb-4 text-orange-600" size={64} />
+                <h1 className="text-2xl font-bold text-gray-800">운송기사 로그인</h1>
+                <p className="text-gray-600 mt-2">차량번호와 비밀번호를 입력하세요</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">차량번호</label>
+                  <select 
+                    className="w-full p-3 border rounded-lg"
+                    value={driverLogin.vehicleNo}
+                    onChange={(e) => setDriverLogin({...driverLogin, vehicleNo: e.target.value})}
+                  >
+                    <option value="">선택하세요</option>
+                    {vehicleData.map((d, i) => (
+                      <option key={i} value={d['차량번호']}>
+                        {d['차량번호']} - {d['운송기사']}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">비밀번호 (연락처 번호, "-" 제외)</label>
+                  <input 
+                    type="password"
+                    className="w-full p-3 border rounded-lg"
+                    placeholder="예: 01099421118"
+                    value={driverLogin.password}
+                    onChange={(e) => setDriverLogin({...driverLogin, password: e.target.value})}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') handleDriverLogin();
+                    }}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">* 연락처 번호에서 "-"를 제거한 숫자만 입력</p>
+                </div>
+                
+                <button 
+                  onClick={handleDriverLogin}
+                  disabled={!driverLogin.vehicleNo || !driverLogin.password}
+                  className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 disabled:bg-gray-400 transition"
+                >
+                  로그인
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentRole('')}
+                  className="w-full bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition"
+                >
+                  역할 선택으로 돌아가기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (viewMode === 'detail' && selectedReport) {
+      return (
+        <div className="min-h-screen bg-orange-50 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+              <button 
+                onClick={() => {
+                  setViewMode('list');
+                  setSelectedReport(null);
+                }}
+                className="flex items-center text-orange-600 hover:text-orange-800 mb-4"
+              >
+                <ArrowLeft size={20} className="mr-2" />
+                목록으로
+              </button>
+              
+              <h2 className="text-2xl font-bold mb-4">보고서 상세</h2>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Container No.</p>
+                      <p className="font-semibold">{selectedReport.containerNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">B/L No.</p>
+                      <p className="font-semibold">{selectedReport.blNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">차량번호</p>
+                      <p className="font-semibold">{selectedReport.vehicleNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">운송기사</p>
+                      <p className="font-semibold">{selectedReport.driverName}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    {getStatusBadge(selectedReport.status)}
+                  </div>
+                </div>
+
+                {selectedReport.status === 'rejected' && (
+                  <div className="bg-red-50 p-4 rounded border-2 border-red-200">
+                    <p className="font-semibold text-red-800 mb-2">반려 사유:</p>
+                    <p className="text-red-700">{selectedReport.rejectionReason}</p>
+                  </div>
+                )}
+
+                <div className="bg-orange-50 p-4 rounded">
+                  <p className="font-semibold mb-2">기사 보고 내용:</p>
+                  <p className="whitespace-pre-wrap">{selectedReport.driverDamage}</p>
+                  <p className="text-sm text-gray-600 mt-2">서명: {selectedReport.driverSignature}</p>
+                </div>
+
+                {selectedReport.fieldStaff && (
+                  <div className="bg-purple-50 p-4 rounded">
+                    <p className="font-semibold mb-2">현장 확인 내용:</p>
+                    <p className="whitespace-pre-wrap">{selectedReport.fieldDamage}</p>
+                    <p className="text-sm text-gray-600 mt-2">담당: {selectedReport.fieldStaff} | 서명: {selectedReport.fieldSignature}</p>
+                  </div>
+                )}
+
+                {selectedReport.officeStaff && (
+                  <div className="bg-indigo-50 p-4 rounded">
+                    <p className="font-semibold mb-2">사무실 확인 내용:</p>
+                    <p className="whitespace-pre-wrap">{selectedReport.officeDamage}</p>
+                    <p className="text-sm text-gray-600 mt-2">담당: {selectedReport.officeStaff} | 서명: {selectedReport.officeSignature}</p>
+                  </div>
+                )}
+
+                {selectedReport.status === 'rejected' && (
+                  <div className="bg-white border-2 border-orange-300 rounded-lg p-6">
+                    <h3 className="text-lg font-bold mb-4">보고서 수정</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Container No.</label>
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded bg-gray-100" 
+                          value={selectedReport.containerNo} 
+                          readOnly 
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">B/L No.</label>
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded bg-gray-100" 
+                          value={selectedReport.blNo} 
+                          readOnly 
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">파손 내용 (수정)</label>
+                        <textarea 
+                          className="w-full p-2 border rounded h-32" 
+                          value={formData.driverDamage}
+                          onChange={(e) => setFormData({...formData, driverDamage: e.target.value})}
+                          placeholder="파손 내용을 입력하세요"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">서명</label>
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded" 
+                          placeholder="이름 입력" 
+                          value={formData.driverSignature} 
+                          onChange={(e) => setFormData({...formData, driverSignature: e.target.value})} 
+                        />
+                      </div>
+                      
+                      <button 
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            containerNo: selectedReport.containerNo,
+                            blNo: selectedReport.blNo,
+                            driverDamage: selectedReport.driverDamage,
+                            driverSignature: selectedReport.driverSignature
+                          });
+                          updateReport(selectedReport.id);
+                        }}
+                        disabled={!formData.driverDamage || !formData.driverSignature} 
+                        className="w-full bg-orange-600 text-white py-3 rounded disabled:bg-gray-400 font-semibold hover:bg-orange-700 transition"
+                      >
+                        수정 후 재제출
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedReport.status === 'completed' && (
+                  <button 
+                    onClick={() => generatePDF(selectedReport)} 
+                    className="w-full bg-green-500 text-white py-3 rounded hover:bg-green-600 flex items-center justify-center font-semibold"
+                  >
+                    <Download className="mr-2" size={20} />
+                    PDF 다운로드
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-orange-50 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold flex items-center">
+                <Truck className="mr-3 text-orange-600" size={32} />
+                운송기사 - {formData.driverName} ({formData.vehicleNo})
+              </h1>
+              <button 
+                onClick={() => {
+                  setDriverLogin({loggedIn: false, vehicleNo: '', password: ''});
+                  setCurrentRole('');
+                }} 
+                className="text-blue-600 hover:text-blue-800"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-4">새 보고서</h2>
+              <div className="space-y-3">
+                <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-200">
+                  <p className="text-sm font-semibold text-blue-800">차량번호: {formData.vehicleNo}</p>
+                  <p className="text-sm font-semibold text-blue-800">운송기사: {formData.driverName}</p>
+                  <p className="text-sm text-gray-600">연락처: {formData.driverPhone}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Container No.</label>
+                  <select className="w-full p-2 border rounded" value={formData.containerNo} onChange={(e) => {
+                    const s = cargoData.find(d => d['Container No.'] === e.target.value);
+                    if (s) setFormData({...formData, containerNo: s['Container No.'], blNo: s['B/L No.']});
+                  }}>
+                    <option value="">선택하세요</option>
+                    {cargoData.map((d, i) => <option key={i} value={d['Container No.']}>{d['Container No.']}</option>)}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">B/L No. (자동입력)</label>
+                  <input type="text" className="w-full p-2 border rounded bg-gray-100" value={formData.blNo} readOnly />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">파손 내용 (수정 가능)</label>
+                  <textarea 
+                    className="w-full p-2 border rounded h-32" 
+                    value={formData.driverDamage}
+                    onChange={(e) => setFormData({...formData, driverDamage: e.target.value})}
+                    onFocus={(e) => {
+                      if (!formData.driverDamage) {
+                        setFormData({...formData, driverDamage: '기사인 저가 현장에서 체크 후 천일과 관계없이 컨테이너 원래부터 일부 파손 등이 있는 걸 발견했습니다. 이미지 첨부한대로.'});
+                      }
+                    }}
+                    placeholder="기사인 저가 현장에서 체크 후..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">서명</label>
+                  <input type="text" className="w-full p-2 border rounded" placeholder="이름 입력" value={formData.driverSignature} onChange={(e) => setFormData({...formData, driverSignature: e.target.value})} />
+                </div>
+                
+                <button 
+                  onClick={createNewReport} 
+                  disabled={!formData.containerNo || !formData.driverDamage || !formData.driverSignature} 
+                  className="w-full bg-orange-600 text-white py-3 rounded disabled:bg-gray-400 font-semibold hover:bg-orange-700 transition"
+                >
+                  제출
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-4">내 보고서 ({reports.filter(r => r.vehicleNo === formData.vehicleNo).length}건)</h2>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {reports.filter(r => r.vehicleNo === formData.vehicleNo).length === 0 && (
+                  <p className="text-gray-500 text-center py-8">아직 제출한 보고서가 없습니다.</p>
+                )}
+                {reports
+                  .filter(r => r.vehicleNo === formData.vehicleNo)
+                  .sort((a, b) => new Date(b.driverSubmittedAt) - new Date(a.driverSubmittedAt))
+                  .map(r => renderReportCard(r, true))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentRole === 'field') {
+    const pending = reports.filter(r => r.status === 'driver_submitted').sort((a, b) => new Date(b.driverSubmittedAt) - new Date(a.driverSubmittedAt));
+    
+    if (viewMode === 'detail' && selectedReport && selectedReport.status === 'driver_submitted') {
+      return (
+        <div className="min-h-screen bg-purple-50 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <button 
+                onClick={() => {
+                  setViewMode('list');
+                  setSelectedReport(null);
+                }}
+                className="flex items-center text-purple-600 hover:text-purple-800 mb-4"
+              >
+                <ArrowLeft size={20} className="mr-2" />
+                목록으로
+              </button>
+              
+              <h2 className="text-2xl font-bold mb-4">현장 확인</h2>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Container No.</p>
+                      <p className="font-semibold">{selectedReport.containerNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">B/L No.</p>
+                      <p className="font-semibold">{selectedReport.blNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">운송기사</p>
+                      <p className="font-semibold">{selectedReport.driverName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">차량번호</p>
+                      <p className="font-semibold">{selectedReport.vehicleNo}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-orange-50 p-4 rounded">
+                  <p className="font-semibold mb-2">기사 보고:</p>
+                  <p className="whitespace-pre-wrap">{selectedReport.driverDamage}</p>
+                </div>
+                
+                <div className="bg-white border-2 border-purple-300 rounded-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">현장 확인 작성</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">현장직원</label>
+                      <select className="w-full p-2 border rounded" value={formData.fieldStaff} onChange={(e) => {
+                        const s = fieldData.find(d => d['현장직원'] === e.target.value);
+                        if (s) setFormData({...formData, fieldStaff: s['현장직원'], fieldPhone: s['연락처 번호']});
+                      }}>
+                        <option value="">선택</option>
+                        {fieldData.map((d, i) => <option key={i} value={d['현장직원']}>{d['현장직원']}</option>)}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">연락처 (자동입력)</label>
+                      <input type="text" className="w-full p-2 border rounded bg-gray-100" value={formData.fieldPhone} readOnly />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">현장 확인 내용</label>
+                      <textarea 
+                        className="w-full p-2 border rounded h-32" 
+                        value={formData.fieldDamage}
+                        onChange={(e) => setFormData({...formData, fieldDamage: e.target.value})}
+                        onFocus={(e) => {
+                          if (!formData.fieldDamage) {
+                            setFormData({...formData, fieldDamage: '현장 책임자인 저가 체크 후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너 원래부터 일부 파손 등이 있는 걸 발견했습니다. 이미지 첨부한대로.'});
+                          }
+                        }}
+                        placeholder="현장 책임자인 저가 체크 후..."
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">서명</label>
+                      <input type="text" className="w-full p-2 border rounded" placeholder="이름 입력" value={formData.fieldSignature} onChange={(e) => setFormData({...formData, fieldSignature: e.target.value})} />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => submitFieldReport(selectedReport.id)} 
+                        disabled={!formData.fieldStaff || !formData.fieldDamage || !formData.fieldSignature} 
+                        className="bg-purple-600 text-white py-3 rounded disabled:bg-gray-400 font-semibold hover:bg-purple-700 transition"
+                      >
+                        승인 및 제출
+                      </button>
+                      
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const reason = prompt('반려 사유를 입력하세요:');
+                          if (reason && reason.trim()) {
+                            rejectReport(selectedReport.id, reason.trim());
+                          } else if (reason !== null) {
+                            alert('반려 사유를 입력해주세요.');
+                          }
+                        }}
+                        className="bg-red-500 text-white py-3 rounded font-semibold hover:bg-red-600 transition flex items-center justify-center"
+                      >
+                        <XCircle size={20} className="mr-2" />
+                        반려
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-purple-50 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold flex items-center">
+                <AlertTriangle className="mr-3 text-purple-600" size={32} />
+                현장 책임자
+              </h1>
+              <button onClick={() => setCurrentRole('')} className="text-blue-600 hover:text-blue-800">역할 변경</button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-4">확인 대기중 ({pending.length}건)</h2>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {pending.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">대기중인 보고서가 없습니다.</p>
+                )}
+                {pending.map(r => renderReportCard(r, true))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-4">처리 이력</h2>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {reports.filter(r => r.fieldStaff && r.status !== 'driver_submitted').length === 0 && (
+                  <p className="text-gray-500 text-center py-8">처리한 보고서가 없습니다.</p>
+                )}
+                {reports
+                  .filter(r => r.fieldStaff && r.status !== 'driver_submitted')
+                  .sort((a, b) => new Date(b.fieldSubmittedAt || b.rejectedAt) - new Date(a.fieldSubmittedAt || a.rejectedAt))
+                  .map(r => renderReportCard(r, true))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentRole === 'office') {
+    const pending = reports.filter(r => r.status === 'field_submitted').sort((a, b) => new Date(b.fieldSubmittedAt) - new Date(a.fieldSubmittedAt));
+    
+    if (viewMode === 'detail' && selectedReport && selectedReport.status === 'field_submitted') {
+      return (
+        <div className="min-h-screen bg-indigo-50 p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <button 
+                onClick={() => {
+                  setViewMode('list');
+                  setSelectedReport(null);
+                }}
+                className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4"
+              >
+                <ArrowLeft size={20} className="mr-2" />
+                목록으로
+              </button>
+              
+              <h2 className="text-2xl font-bold mb-4">최종 승인</h2>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-4 rounded">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Container No.</p>
+                      <p className="font-semibold">{selectedReport.containerNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">B/L No.</p>
+                      <p className="font-semibold">{selectedReport.blNo}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">운송기사</p>
+                      <p className="font-semibold">{selectedReport.driverName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">차량번호</p>
+                      <p className="font-semibold">{selectedReport.vehicleNo}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-orange-50 p-4 rounded">
+                  <p className="font-semibold mb-2">기사 보고:</p>
+                  <p className="whitespace-pre-wrap">{selectedReport.driverDamage}</p>
+                </div>
+
+                <div className="bg-purple-50 p-4 rounded">
+                  <p className="font-semibold mb-2">현장 확인:</p>
+                  <p className="whitespace-pre-wrap">{selectedReport.fieldDamage}</p>
+                  <p className="text-sm text-gray-600 mt-2">담당: {selectedReport.fieldStaff}</p>
+                </div>
+                
+                <div className="bg-white border-2 border-indigo-300 rounded-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">사무실 최종 승인</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">사무실직원</label>
+                      <select className="w-full p-2 border rounded" value={formData.officeStaff} onChange={(e) => {
+                        const s = officeData.find(d => d['사무실직원'] === e.target.value);
+                        if (s) setFormData({...formData, officeStaff: s['사무실직원'], officePhone: s['연락처 번호']});
+                      }}>
+                        <option value="">선택</option>
+                        {officeData.map((d, i) => <option key={i} value={d['사무실직원']}>{d['사무실직원']}</option>)}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">연락처 (자동입력)</label>
+                      <input type="text" className="w-full p-2 border rounded bg-gray-100" value={formData.officePhone} readOnly />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">최종 확인</label>
+                      <textarea 
+                        className="w-full p-2 border rounded h-32" 
+                        value={formData.officeDamage}
+                        onChange={(e) => setFormData({...formData, officeDamage: e.target.value})}
+                        onFocus={(e) => {
+                          if (!formData.officeDamage) {
+                            setFormData({...formData, officeDamage: '현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래부터 일부 파손 등이 있는 걸 발견했습니다. 이미지 첨부한대로.'});
+                          }
+                        }}
+                        placeholder="현장 책임자의 서술에 동의합니다..."
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">서명</label>
+                      <input type="text" className="w-full p-2 border rounded" placeholder="이름 입력" value={formData.officeSignature} onChange={(e) => setFormData({...formData, officeSignature: e.target.value})} />
+                    </div>
+                    
+                    <button 
+                      onClick={() => submitOfficeReport(selectedReport.id)} 
+                      disabled={!formData.officeStaff || !formData.officeDamage || !formData.officeSignature} 
+                      className="w-full bg-indigo-600 text-white py-3 rounded disabled:bg-gray-400 font-semibold hover:bg-indigo-700 transition"
+                    >
+                      승인 완료
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-indigo-50 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold flex items-center">
+                <FileText className="mr-3 text-indigo-600" size={32} />
+                사무실 책임자
+              </h1>
+              <button onClick={() => setCurrentRole('')} className="text-blue-600 hover:text-blue-800">역할 변경</button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-4">승인 대기 ({pending.length}건)</h2>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {pending.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">승인 대기중인 보고서가 없습니다.</p>
+                )}
+                {pending.map(r => renderReportCard(r, true))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-bold mb-4">완료 보고서</h2>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {reports.filter(r => r.status === 'completed').length === 0 && (
+                  <p className="text-gray-500 text-center py-8">완료된 보고서가 없습니다.</p>
+                )}
+                {reports
+                  .filter(r => r.status === 'completed')
+                  .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+                  .map(r => renderReportCard(r, true))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
