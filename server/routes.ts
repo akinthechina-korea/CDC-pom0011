@@ -370,6 +370,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Replace all endpoints for inline editing (deletes existing data and inserts new)
+  
+  // Replace all cargo
+  app.post("/api/data/cargo/replace", async (req, res) => {
+    try {
+      const items = z.array(insertCargoSchema).parse(req.body);
+      const replaced = await storage.replaceAllCargo(items);
+      
+      res.status(200).json({ 
+        success: true, 
+        count: replaced.length,
+        items: replaced 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "화물 데이터 교체 실패" });
+    }
+  });
+
+  // Replace all vehicles
+  app.post("/api/data/vehicles/replace", async (req, res) => {
+    try {
+      const items = z.array(insertVehicleSchema).parse(req.body);
+      const replaced = await storage.replaceAllVehicles(items);
+      
+      res.status(200).json({ 
+        success: true, 
+        count: replaced.length,
+        items: replaced 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "차량 데이터 교체 실패" });
+    }
+  });
+
+  // Replace all field staff
+  app.post("/api/data/field-staff/replace", async (req, res) => {
+    try {
+      const items = z.array(insertFieldStaffSchema).parse(req.body);
+      const replaced = await storage.replaceAllFieldStaff(items);
+      
+      res.status(200).json({ 
+        success: true, 
+        count: replaced.length,
+        items: replaced 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "현장 담당자 데이터 교체 실패" });
+    }
+  });
+
+  // Replace all office staff
+  app.post("/api/data/office-staff/replace", async (req, res) => {
+    try {
+      const items = z.array(insertOfficeStaffSchema).parse(req.body);
+      const replaced = await storage.replaceAllOfficeStaff(items);
+      
+      res.status(200).json({ 
+        success: true, 
+        count: replaced.length,
+        items: replaced 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "데이터 검증 실패", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "사무실 담당자 데이터 교체 실패" });
+    }
+  });
+
   // Photo upload endpoint
   app.post("/api/upload/damage-photo", upload.single('photo'), async (req, res) => {
     try {

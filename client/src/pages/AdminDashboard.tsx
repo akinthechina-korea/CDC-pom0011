@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Upload, AlertCircle, CheckCircle, Download } from "lucide-react";
+import { ArrowLeft, Upload, AlertCircle, CheckCircle, Download, Edit, Save, Plus, Trash2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -25,6 +25,10 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
+  
+  // Editable table states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableData, setEditableData] = useState<any[]>([]);
 
   // Fetch all master data
   const { data: cargo = [] } = useQuery<Cargo[]>({ queryKey: ['/api/data/cargo'] });
@@ -32,7 +36,7 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
   const { data: fieldStaff = [] } = useQuery<FieldStaff[]>({ queryKey: ['/api/data/field-staff'] });
   const { data: officeStaff = [] } = useQuery<OfficeStaff[]>({ queryKey: ['/api/data/office-staff'] });
 
-  // Upload mutation
+  // Upload mutation (for CSV upload - appends data)
   const uploadMutation = useMutation({
     mutationFn: async ({ type, data }: { type: DataType; data: any[] }) => {
       return await apiRequest('POST', `/api/data/${type}/bulk`, data);
@@ -51,6 +55,29 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
       toast({
         title: "업로드 실패",
         description: error?.message || "데이터 업로드 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Replace mutation (for inline editing - replaces all data)
+  const replaceMutation = useMutation({
+    mutationFn: async ({ type, data }: { type: DataType; data: any[] }) => {
+      return await apiRequest('POST', `/api/data/${type}/replace`, data);
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "저장 완료",
+        description: `${variables.data.length}개 항목이 저장되었습니다.`,
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/data/${variables.type}`] });
+      setIsEditing(false);
+      setEditableData([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "저장 실패",
+        description: error?.message || "데이터 저장 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     },
@@ -178,6 +205,290 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
       case 'office-staff': return officeStaff;
       default: return [];
     }
+  };
+
+  // Editable table functions
+  const startEditing = () => {
+    const currentData = getCurrentData();
+    setEditableData(JSON.parse(JSON.stringify(currentData))); // Deep copy
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditableData([]);
+  };
+
+  const handleCellChange = (rowIndex: number, field: string, value: string) => {
+    const newData = [...editableData];
+    newData[rowIndex] = { ...newData[rowIndex], [field]: value };
+    setEditableData(newData);
+  };
+
+  const handleAddRow = () => {
+    const emptyRow: any = {};
+    switch (activeTab) {
+      case 'cargo':
+        emptyRow.containerNo = '';
+        emptyRow.blNo = '';
+        emptyRow.date = '';
+        break;
+      case 'vehicles':
+        emptyRow.vehicleNo = '';
+        emptyRow.driverName = '';
+        emptyRow.driverPhone = '';
+        break;
+      case 'field-staff':
+      case 'office-staff':
+        emptyRow.name = '';
+        emptyRow.phone = '';
+        break;
+    }
+    setEditableData([...editableData, emptyRow]);
+  };
+
+  const handleDeleteRow = (rowIndex: number) => {
+    const newData = editableData.filter((_, index) => index !== rowIndex);
+    setEditableData(newData);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    const rows = pastedText.trim().split('\n');
+    const newRows: any[] = [];
+
+    rows.forEach(row => {
+      const cells = row.split('\t');
+      const newRow: any = {};
+      
+      switch (activeTab) {
+        case 'cargo':
+          if (cells.length >= 3) {
+            newRow.containerNo = cells[0]?.trim() || '';
+            newRow.blNo = cells[1]?.trim() || '';
+            newRow.date = cells[2]?.trim() || '';
+            newRows.push(newRow);
+          }
+          break;
+        case 'vehicles':
+          if (cells.length >= 3) {
+            newRow.vehicleNo = cells[0]?.trim() || '';
+            newRow.driverName = cells[1]?.trim() || '';
+            newRow.driverPhone = cells[2]?.trim() || '';
+            newRows.push(newRow);
+          }
+          break;
+        case 'field-staff':
+        case 'office-staff':
+          if (cells.length >= 2) {
+            newRow.name = cells[0]?.trim() || '';
+            newRow.phone = cells[1]?.trim() || '';
+            newRows.push(newRow);
+          }
+          break;
+      }
+    });
+
+    if (newRows.length > 0) {
+      setEditableData([...editableData, ...newRows]);
+      toast({
+        title: "붙여넣기 완료",
+        description: `${newRows.length}개의 행이 추가되었습니다.`,
+      });
+    }
+  };
+
+  const handleSave = () => {
+    // Validate all rows first
+    const invalidRows: number[] = [];
+    
+    editableData.forEach((row, index) => {
+      let isValid = false;
+      
+      switch (activeTab) {
+        case 'cargo':
+          isValid = !!(row.containerNo?.trim() && row.blNo?.trim() && row.date?.trim());
+          break;
+        case 'vehicles':
+          isValid = !!(row.vehicleNo?.trim() && row.driverName?.trim() && row.driverPhone?.trim());
+          break;
+        case 'field-staff':
+        case 'office-staff':
+          isValid = !!(row.name?.trim() && row.phone?.trim());
+          break;
+      }
+      
+      if (!isValid) {
+        invalidRows.push(index + 1);
+      }
+    });
+
+    if (invalidRows.length > 0) {
+      toast({
+        title: "저장 실패",
+        description: `${invalidRows.length}개 행에 필수 정보가 누락되었습니다. (행 번호: ${invalidRows.slice(0, 5).join(', ')}${invalidRows.length > 5 ? '...' : ''})`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Extract only insert schema fields (remove id, timestamps, etc.)
+    const insertData = editableData.map(row => {
+      switch (activeTab) {
+        case 'cargo':
+          return {
+            containerNo: row.containerNo.trim(),
+            blNo: row.blNo.trim(),
+            date: row.date.trim()
+          };
+        case 'vehicles':
+          return {
+            vehicleNo: row.vehicleNo.trim(),
+            driverName: row.driverName.trim(),
+            driverPhone: row.driverPhone.trim()
+          };
+        case 'field-staff':
+        case 'office-staff':
+          return {
+            name: row.name.trim(),
+            phone: row.phone.trim()
+          };
+        default:
+          throw new Error(`Unknown data type: ${activeTab}`);
+      }
+    });
+
+    replaceMutation.mutate({ type: activeTab, data: insertData });
+  };
+
+  const renderEditableTable = (data: any[], type: DataType) => {
+    return (
+      <div onPaste={handlePaste} className="focus:outline-none" tabIndex={0}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {type === 'cargo' && (
+                <>
+                  <TableHead>컨테이너 번호</TableHead>
+                  <TableHead>B/L 번호</TableHead>
+                  <TableHead>년월일</TableHead>
+                  <TableHead className="w-20">삭제</TableHead>
+                </>
+              )}
+              {type === 'vehicles' && (
+                <>
+                  <TableHead>차량번호</TableHead>
+                  <TableHead>운송기사</TableHead>
+                  <TableHead>연락처</TableHead>
+                  <TableHead className="w-20">삭제</TableHead>
+                </>
+              )}
+              {(type === 'field-staff' || type === 'office-staff') && (
+                <>
+                  <TableHead>이름</TableHead>
+                  <TableHead>연락처</TableHead>
+                  <TableHead className="w-20">삭제</TableHead>
+                </>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item, index) => (
+              <TableRow key={index}>
+                {type === 'cargo' && (
+                  <>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.containerNo || ''}
+                        onChange={(e) => handleCellChange(index, 'containerNo', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.blNo || ''}
+                        onChange={(e) => handleCellChange(index, 'blNo', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.date || ''}
+                        onChange={(e) => handleCellChange(index, 'date', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                        placeholder="YYYY-MM-DD"
+                      />
+                    </TableCell>
+                  </>
+                )}
+                {type === 'vehicles' && (
+                  <>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.vehicleNo || ''}
+                        onChange={(e) => handleCellChange(index, 'vehicleNo', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.driverName || ''}
+                        onChange={(e) => handleCellChange(index, 'driverName', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.driverPhone || ''}
+                        onChange={(e) => handleCellChange(index, 'driverPhone', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                  </>
+                )}
+                {(type === 'field-staff' || type === 'office-staff') && (
+                  <>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.name || ''}
+                        onChange={(e) => handleCellChange(index, 'name', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="text"
+                        value={item.phone || ''}
+                        onChange={(e) => handleCellChange(index, 'phone', e.target.value)}
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    </TableCell>
+                  </>
+                )}
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteRow(index)}
+                    data-testid={`button-delete-row-${index}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
   };
 
   const renderDataTable = (data: any[], type: DataType) => {
@@ -376,11 +687,69 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
 
               {/* Current Data Section */}
               <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4">
-                  현재 데이터 ({getCurrentData().length}개)
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">
+                    현재 데이터 ({isEditing ? editableData.length : getCurrentData().length}개)
+                  </h2>
+                  <div className="flex gap-2">
+                    {!isEditing ? (
+                      <Button
+                        onClick={startEditing}
+                        variant="outline"
+                        size="sm"
+                        data-testid="button-start-edit"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        편집 모드
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={handleAddRow}
+                          variant="outline"
+                          size="sm"
+                          data-testid="button-add-row"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          행 추가
+                        </Button>
+                        <Button
+                          onClick={cancelEditing}
+                          variant="outline"
+                          size="sm"
+                          data-testid="button-cancel-edit"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          취소
+                        </Button>
+                        <Button
+                          onClick={handleSave}
+                          disabled={replaceMutation.isPending}
+                          size="sm"
+                          data-testid="button-save"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          {replaceMutation.isPending ? "저장 중..." : "저장"}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Excel/Google Sheets에서 데이터를 복사하여 테이블에 붙여넣기(Ctrl+V) 할 수 있습니다.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="max-h-96 overflow-auto border rounded-lg">
-                  {renderDataTable(getCurrentData(), type)}
+                  {isEditing 
+                    ? renderEditableTable(editableData, type)
+                    : renderDataTable(getCurrentData(), type)
+                  }
                 </div>
               </Card>
             </TabsContent>

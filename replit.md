@@ -64,10 +64,14 @@
 - `GET /api/data/field-staff` - 현장 담당자 목록
 - `GET /api/data/office-staff` - 사무실 담당자 목록
 - `GET /api/data/admin-staff` - 관리자 목록
-- `POST /api/data/cargo/bulk` - 화물 일괄 업로드 (CSV)
-- `POST /api/data/vehicles/bulk` - 차량 일괄 업로드 (CSV)
-- `POST /api/data/field-staff/bulk` - 현장 담당자 일괄 업로드 (CSV)
-- `POST /api/data/office-staff/bulk` - 사무실 담당자 일괄 업로드 (CSV)
+- `POST /api/data/cargo/bulk` - 화물 일괄 업로드 (CSV, 기존 데이터에 추가)
+- `POST /api/data/vehicles/bulk` - 차량 일괄 업로드 (CSV, 기존 데이터에 추가)
+- `POST /api/data/field-staff/bulk` - 현장 담당자 일괄 업로드 (CSV, 기존 데이터에 추가)
+- `POST /api/data/office-staff/bulk` - 사무실 담당자 일괄 업로드 (CSV, 기존 데이터에 추가)
+- `POST /api/data/cargo/replace` - 화물 데이터 교체 (직접 편집, 전체 데이터 교체)
+- `POST /api/data/vehicles/replace` - 차량 데이터 교체 (직접 편집, 전체 데이터 교체)
+- `POST /api/data/field-staff/replace` - 현장 담당자 데이터 교체 (직접 편집, 전체 데이터 교체)
+- `POST /api/data/office-staff/replace` - 사무실 담당자 데이터 교체 (직접 편집, 전체 데이터 교체)
 
 ### Reports
 - `GET /api/reports` - 전체 보고서 조회
@@ -184,6 +188,13 @@
    - AdminLogin 컴포넌트 생성 (다른 역할과 동일한 디자인 패턴)
    - 초기 관리자 데이터: 천일요비 (010-1111-1111)
    - 비밀번호: 연락처 번호에서 하이픈 제거 (예: 01011111111)
+11. **직접 편집 기능 (Excel 붙여넣기 지원)** - 관리자가 테이블에서 직접 데이터를 편집하고 Excel에서 복사한 데이터를 붙여넣을 수 있음
+   - 편집 모드, 행 추가/삭제, 셀 편집 기능
+   - Excel/Google Sheets에서 복사한 데이터를 Ctrl+V로 붙여넣기
+   - POST /api/data/:type/replace 엔드포인트 - 트랜잭션 기반 전체 데이터 교체
+   - CSV 업로드(/bulk)와 직접 편집(/replace)의 분리된 API 경로
+   - 엄격한 검증: 필수 필드 누락 시 행 번호를 포함한 명확한 에러 메시지
+   - Insert schema만 전송하여 데이터 중복 방지 (id, timestamp 제거)
 
 ### 보류된 기능
 - **이메일 알림 시스템** - 사용자가 이메일 통합을 취소함. 향후 구현을 원하는 경우 Resend 또는 SendGrid 연동 필요

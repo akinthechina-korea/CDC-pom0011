@@ -23,6 +23,7 @@ export interface IStorage {
   getCargo(id: string): Promise<Cargo | undefined>;
   createCargo(cargo: InsertCargo): Promise<Cargo>;
   upsertCargo(cargo: InsertCargo): Promise<Cargo>;
+  replaceAllCargo(cargoList: InsertCargo[]): Promise<Cargo[]>;
   
   // Vehicles
   getAllVehicles(): Promise<Vehicle[]>;
@@ -30,6 +31,7 @@ export interface IStorage {
   getVehicleByNumber(vehicleNo: string): Promise<Vehicle | undefined>;
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   upsertVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
+  replaceAllVehicles(vehicleList: InsertVehicle[]): Promise<Vehicle[]>;
   
   // Field Staff
   getAllFieldStaff(): Promise<FieldStaff[]>;
@@ -37,6 +39,7 @@ export interface IStorage {
   getFieldStaffByName(name: string): Promise<FieldStaff | undefined>;
   createFieldStaff(staff: InsertFieldStaff): Promise<FieldStaff>;
   upsertFieldStaff(staff: InsertFieldStaff): Promise<FieldStaff>;
+  replaceAllFieldStaff(staffList: InsertFieldStaff[]): Promise<FieldStaff[]>;
   
   // Office Staff
   getAllOfficeStaff(): Promise<OfficeStaff[]>;
@@ -44,6 +47,7 @@ export interface IStorage {
   getOfficeStaffByName(name: string): Promise<OfficeStaff | undefined>;
   createOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
   upsertOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
+  replaceAllOfficeStaff(staffList: InsertOfficeStaff[]): Promise<OfficeStaff[]>;
   
   // Admin Staff
   getAllAdminStaff(): Promise<AdminStaff[]>;
@@ -257,6 +261,39 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return staff;
+  }
+
+  // Replace All Methods (for inline editing)
+  async replaceAllCargo(cargoList: InsertCargo[]): Promise<Cargo[]> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(cargo);
+      if (cargoList.length === 0) return [];
+      return await tx.insert(cargo).values(cargoList).returning();
+    });
+  }
+
+  async replaceAllVehicles(vehicleList: InsertVehicle[]): Promise<Vehicle[]> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(vehicles);
+      if (vehicleList.length === 0) return [];
+      return await tx.insert(vehicles).values(vehicleList).returning();
+    });
+  }
+
+  async replaceAllFieldStaff(staffList: InsertFieldStaff[]): Promise<FieldStaff[]> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(fieldStaff);
+      if (staffList.length === 0) return [];
+      return await tx.insert(fieldStaff).values(staffList).returning();
+    });
+  }
+
+  async replaceAllOfficeStaff(staffList: InsertOfficeStaff[]): Promise<OfficeStaff[]> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(officeStaff);
+      if (staffList.length === 0) return [];
+      return await tx.insert(officeStaff).values(staffList).returning();
+    });
   }
 }
 
