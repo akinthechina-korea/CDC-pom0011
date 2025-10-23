@@ -137,15 +137,6 @@ export default function OfficeDashboard({
       const timeB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
       return timeB - timeA;
     });
-  
-  // 반려: 반려 시간 기준 최신순
-  const rejectedReports = reports
-    .filter(r => r.status === 'rejected')
-    .sort((a, b) => {
-      const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
-      const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
-      return timeB - timeA;
-    });
 
   return (
     <div className="min-h-screen bg-office/5">
@@ -181,15 +172,12 @@ export default function OfficeDashboard({
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-2">
             <TabsTrigger value="pending" data-testid="tab-pending">
               승인대기 ({pendingReports.length})
             </TabsTrigger>
             <TabsTrigger value="completed" data-testid="tab-completed">
               승인완료 ({completedReports.length})
-            </TabsTrigger>
-            <TabsTrigger value="rejected" data-testid="tab-rejected">
-              반려 ({rejectedReports.length})
             </TabsTrigger>
           </TabsList>
 
@@ -231,29 +219,6 @@ export default function OfficeDashboard({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {completedReports.map((report) => (
-                  <ReportCard
-                    key={report.id}
-                    report={report}
-                    onClick={() => setSelectedReport(report)}
-                    showAllDetails={true}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Rejected Reports */}
-          <TabsContent value="rejected" className="space-y-4">
-            {rejectedReports.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">반려된 보고서가 없습니다.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {rejectedReports.map((report) => (
                   <ReportCard
                     key={report.id}
                     report={report}
