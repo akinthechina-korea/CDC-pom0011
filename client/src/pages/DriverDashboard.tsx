@@ -654,6 +654,85 @@ export default function DriverDashboard({
                 </Card>
               )}
 
+              {/* Action History Section */}
+              {selectedReport.actionHistory && selectedReport.actionHistory.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">전체 처리 이력</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {selectedReport.actionHistory.map((item, index) => {
+                      const isRejection = item.actionType === 'reject' || item.actionType === 'office_reject';
+                      const isSubmission = item.actionType === 'submit' || item.actionType === 'resubmit';
+                      const isApproval = item.actionType === 'approve' || item.actionType === 'office_approve';
+                      
+                      let bgClass = 'bg-muted/30';
+                      let roleLabel = '';
+                      
+                      if (item.actorRole === 'driver') {
+                        bgClass = 'bg-chart-3/10';
+                        roleLabel = '운송기사';
+                      } else if (item.actorRole === 'field') {
+                        bgClass = 'bg-chart-2/10';
+                        roleLabel = '현장';
+                      } else if (item.actorRole === 'office') {
+                        bgClass = 'bg-chart-1/10';
+                        roleLabel = '사무실';
+                      }
+                      
+                      const actionLabel = {
+                        submit: '제출',
+                        resubmit: '재제출',
+                        approve: '승인',
+                        reject: '반려',
+                        office_approve: '최종 승인',
+                        office_reject: '반려',
+                      }[item.actionType] || item.actionType;
+                      
+                      return (
+                        <div key={index} className={`p-3 rounded-md ${bgClass}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-semibold text-sm ${isRejection ? 'text-destructive' : isApproval ? 'text-chart-4' : 'text-foreground'}`}>
+                                {roleLabel} {actionLabel}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                ({item.actor})
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDateTime(item.timestamp)}
+                            </span>
+                          </div>
+                          
+                          {item.content && (
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">
+                                {isSubmission ? '파손 내용:' : '확인 내용:'}
+                              </p>
+                              <p className="text-sm whitespace-pre-wrap">{item.content}</p>
+                            </div>
+                          )}
+                          
+                          {item.signature && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              서명: {item.signature}
+                            </p>
+                          )}
+                          
+                          {item.reason && (
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-destructive/80 mb-1">반려 사유:</p>
+                              <p className="text-sm text-destructive/90">{item.reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              )}
+
               {selectedReport.status === 'completed' && (
                 <Button
                   onClick={() => onDownloadReport(selectedReport.id)}
