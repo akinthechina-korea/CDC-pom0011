@@ -21,6 +21,7 @@ interface DriverDashboardProps {
   cargoList: Cargo[];
   onLogout: () => void;
   onCreateReport: (data: {
+    reportDate: string;
     containerNo: string;
     blNo: string;
     driverDamage: string;
@@ -52,8 +53,14 @@ export default function DriverDashboard({
   const { toast } = useToast();
 
   const DEFAULT_DRIVER_DAMAGE = "기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+  
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
 
   const [formData, setFormData] = useState({
+    reportDate: getTodayDate(),
     containerNo: "",
     blNo: "",
     driverDamage: DEFAULT_DRIVER_DAMAGE,
@@ -63,6 +70,7 @@ export default function DriverDashboard({
 
   const resetForm = () => {
     setFormData({
+      reportDate: getTodayDate(),
       containerNo: "",
       blNo: "",
       driverDamage: DEFAULT_DRIVER_DAMAGE,
@@ -255,7 +263,18 @@ export default function DriverDashboard({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="container">컨테이너 번호</Label>
+              <Label htmlFor="reportDate">날짜 *</Label>
+              <Input
+                id="reportDate"
+                type="date"
+                value={formData.reportDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, reportDate: e.target.value }))}
+                data-testid="input-report-date"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="container">컨테이너 번호 *</Label>
               <Select
                 value={formData.containerNo}
                 onValueChange={handleContainerSelect}
@@ -266,7 +285,7 @@ export default function DriverDashboard({
                 <SelectContent>
                   {cargoList.map((cargo) => (
                     <SelectItem key={cargo.id} value={cargo.containerNo}>
-                      {cargo.containerNo} - {cargo.blNo}
+                      {cargo.containerNo}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -303,6 +322,7 @@ export default function DriverDashboard({
               <PhotoUploader
                 photos={formData.damagePhotos}
                 onChange={(photos) => setFormData(prev => ({ ...prev, damagePhotos: photos }))}
+                maxPhotos={10}
               />
             </div>
 
@@ -393,6 +413,7 @@ export default function DriverDashboard({
                 <PhotoUploader
                   photos={formData.damagePhotos}
                   onChange={(photos) => setFormData(prev => ({ ...prev, damagePhotos: photos }))}
+                  maxPhotos={10}
                 />
               </div>
 

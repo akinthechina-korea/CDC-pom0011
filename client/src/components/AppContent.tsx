@@ -81,6 +81,7 @@ export default function AppContent() {
   // Create report mutation
   const createReportMutation = useMutation({
     mutationFn: async (data: {
+      reportDate: string;
       containerNo: string;
       blNo: string;
       driverDamage: string;
