@@ -49,6 +49,17 @@ export const insertOfficeStaffSchema = createInsertSchema(officeStaff).omit({ id
 export type InsertOfficeStaff = z.infer<typeof insertOfficeStaffSchema>;
 export type OfficeStaff = typeof officeStaff.$inferSelect;
 
+// Admin staff master data
+export const adminStaff = pgTable("admin_staff", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  phone: text("phone").notNull().unique(),
+});
+
+export const insertAdminStaffSchema = createInsertSchema(adminStaff).omit({ id: true });
+export type InsertAdminStaff = z.infer<typeof insertAdminStaffSchema>;
+export type AdminStaff = typeof adminStaff.$inferSelect;
+
 // Damage reports
 export const reports = pgTable("reports", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -110,6 +121,14 @@ export const driverLoginSchema = z.object({
 });
 
 export type DriverLogin = z.infer<typeof driverLoginSchema>;
+
+// Admin login schema
+export const adminLoginSchema = z.object({
+  staffId: z.string().min(1, "관리자를 선택하세요"),
+  password: z.string().min(1, "비밀번호를 입력하세요"),
+});
+
+export type AdminLogin = z.infer<typeof adminLoginSchema>;
 
 // Field review schema
 export const fieldReviewSchema = z.object({
