@@ -252,13 +252,15 @@ export default function AppContent() {
 
   // Field reject mutation
   const fieldRejectMutation = useMutation({
-    mutationFn: async ({ reportId, reason }: {
+    mutationFn: async ({ reportId, reason, fieldStaff }: {
       reportId: string;
       reason: string;
+      fieldStaff?: string;
     }) => {
       return await apiRequest('PUT', `/api/reports/${reportId}/field-review`, {
         action: 'reject',
         rejectionReason: reason,
+        fieldStaff,
       });
     },
     onSuccess: () => {
@@ -308,12 +310,14 @@ export default function AppContent() {
 
   // Office reject mutation
   const officeRejectMutation = useMutation({
-    mutationFn: async ({ reportId, reason }: {
+    mutationFn: async ({ reportId, reason, officeStaff }: {
       reportId: string;
       reason: string;
+      officeStaff: string;
     }) => {
       return await apiRequest('PUT', `/api/reports/${reportId}/office-reject`, {
         rejectionReason: reason,
+        officeStaff,
       });
     },
     onSuccess: () => {
@@ -419,7 +423,7 @@ export default function AppContent() {
         fieldStaffList={fieldStaffList}
         onLogout={handleFieldLogout}
         onApprove={(reportId, data) => fieldApproveMutation.mutate({ reportId, data })}
-        onReject={(reportId, reason) => fieldRejectMutation.mutate({ reportId, reason })}
+        onReject={(reportId, reason, fieldStaff) => fieldRejectMutation.mutate({ reportId, reason, fieldStaff })}
         onDownloadReport={handleDownloadReport}
       />
     );
@@ -445,7 +449,7 @@ export default function AppContent() {
         officeStaffList={officeStaffList}
         onLogout={handleOfficeLogout}
         onApprove={(reportId, data) => officeApproveMutation.mutate({ reportId, data })}
-        onReject={(reportId, reason) => officeRejectMutation.mutate({ reportId, reason })}
+        onReject={(reportId, reason, officeStaff) => officeRejectMutation.mutate({ reportId, reason, officeStaff })}
         onDownloadReport={handleDownloadReport}
       />
     );

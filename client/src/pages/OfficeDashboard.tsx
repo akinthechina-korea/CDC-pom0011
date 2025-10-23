@@ -27,7 +27,7 @@ interface OfficeDashboardProps {
     officeDamage: string;
     officeSignature: string;
   }) => void;
-  onReject: (reportId: string, reason: string) => void;
+  onReject: (reportId: string, reason: string, officeStaff: string) => void;
   onDownloadReport: (reportId: string) => void;
 }
 
@@ -99,7 +99,7 @@ export default function OfficeDashboard({
       return;
     }
 
-    onReject(selectedReport.id, formData.rejectionReason);
+    onReject(selectedReport.id, formData.rejectionReason, officeName);
     setIsRejecting(false);
     setSelectedReport(null);
     resetForm();

@@ -27,7 +27,7 @@ interface FieldDashboardProps {
     fieldDamage: string;
     fieldSignature: string;
   }) => void;
-  onReject: (reportId: string, reason: string) => void;
+  onReject: (reportId: string, reason: string, fieldStaff: string) => void;
   onDownloadReport: (reportId: string) => void;
 }
 
@@ -101,7 +101,7 @@ export default function FieldDashboard({
       return;
     }
 
-    onReject(selectedReport.id, formData.rejectionReason);
+    onReject(selectedReport.id, formData.rejectionReason, fieldName);
     setIsRejecting(false);
     setIsReviewingRejected(false);
     setSelectedReport(null);
