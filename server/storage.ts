@@ -5,8 +5,9 @@ import type {
   Vehicle, InsertVehicle,
   FieldStaff, InsertFieldStaff,
   OfficeStaff, InsertOfficeStaff,
+  AdminStaff, InsertAdminStaff,
 } from "@shared/schema";
-import { reports, cargo, vehicles, fieldStaff, officeStaff } from "@shared/schema";
+import { reports, cargo, vehicles, fieldStaff, officeStaff, adminStaff } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -41,6 +42,12 @@ export interface IStorage {
   getOfficeStaff(id: string): Promise<OfficeStaff | undefined>;
   createOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
   upsertOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
+  
+  // Admin Staff
+  getAllAdminStaff(): Promise<AdminStaff[]>;
+  getAdminStaff(id: string): Promise<AdminStaff | undefined>;
+  createAdminStaff(staff: InsertAdminStaff): Promise<AdminStaff>;
+  upsertAdminStaff(staff: InsertAdminStaff): Promise<AdminStaff>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -198,6 +205,36 @@ export class DatabaseStorage implements IStorage {
       .values(insertStaff)
       .onConflictDoUpdate({
         target: officeStaff.phone,
+        set: { name: insertStaff.name }
+      })
+      .returning();
+    return staff;
+  }
+
+  // Admin Staff
+  async getAllAdminStaff(): Promise<AdminStaff[]> {
+    return await db.select().from(adminStaff);
+  }
+
+  async getAdminStaff(id: string): Promise<AdminStaff | undefined> {
+    const [staff] = await db.select().from(adminStaff).where(eq(adminStaff.id, id));
+    return staff || undefined;
+  }
+
+  async createAdminStaff(insertStaff: InsertAdminStaff): Promise<AdminStaff> {
+    const [staff] = await db
+      .insert(adminStaff)
+      .values(insertStaff)
+      .returning();
+    return staff;
+  }
+
+  async upsertAdminStaff(insertStaff: InsertAdminStaff): Promise<AdminStaff> {
+    const [staff] = await db
+      .insert(adminStaff)
+      .values(insertStaff)
+      .onConflictDoUpdate({
+        target: adminStaff.phone,
         set: { name: insertStaff.name }
       })
       .returning();
