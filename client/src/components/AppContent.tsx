@@ -1,6 +1,8 @@
 import { useState } from "react";
 import RoleSelection from "@/pages/RoleSelection";
 import DriverLogin from "@/pages/DriverLogin";
+import FieldLogin from "@/pages/FieldLogin";
+import OfficeLogin from "@/pages/OfficeLogin";
 import DriverDashboard from "@/pages/DriverDashboard";
 import FieldDashboard from "@/pages/FieldDashboard";
 import OfficeDashboard from "@/pages/OfficeDashboard";
@@ -19,9 +21,23 @@ interface DriverSession {
   driverPhone: string;
 }
 
+interface FieldSession {
+  staffId: string;
+  staffName: string;
+  staffPhone: string;
+}
+
+interface OfficeSession {
+  staffId: string;
+  staffName: string;
+  staffPhone: string;
+}
+
 export default function AppContent() {
   const [currentRole, setCurrentRole] = useState<Role>('');
   const [driverSession, setDriverSession] = useState<DriverSession | null>(null);
+  const [fieldSession, setFieldSession] = useState<FieldSession | null>(null);
+  const [officeSession, setOfficeSession] = useState<OfficeSession | null>(null);
   const { toast } = useToast();
 
   // Fetch master data
@@ -75,6 +91,70 @@ export default function AppContent() {
 
   const handleDriverLogout = () => {
     setDriverSession(null);
+    setCurrentRole('');
+  };
+
+  // Field login mutation
+  const fieldLoginMutation = useMutation({
+    mutationFn: async (data: { staffId: string; password: string }) => {
+      const res = await apiRequest('POST', '/api/auth/field-login', data);
+      return await res.json();
+    },
+    onSuccess: (data: { staffId: string; staffName: string; staffPhone: string }) => {
+      setFieldSession({
+        staffId: data.staffId,
+        staffName: data.staffName,
+        staffPhone: data.staffPhone,
+      });
+      toast({
+        title: "로그인 성공",
+        description: `${data.staffName}님, 환영합니다.`,
+      });
+    },
+    onError: (error: any) => {
+      const message = error?.message || "로그인에 실패했습니다";
+      toast({
+        title: "로그인 실패",
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFieldLogout = () => {
+    setFieldSession(null);
+    setCurrentRole('');
+  };
+
+  // Office login mutation
+  const officeLoginMutation = useMutation({
+    mutationFn: async (data: { staffId: string; password: string }) => {
+      const res = await apiRequest('POST', '/api/auth/office-login', data);
+      return await res.json();
+    },
+    onSuccess: (data: { staffId: string; staffName: string; staffPhone: string }) => {
+      setOfficeSession({
+        staffId: data.staffId,
+        staffName: data.staffName,
+        staffPhone: data.staffPhone,
+      });
+      toast({
+        title: "로그인 성공",
+        description: `${data.staffName}님, 환영합니다.`,
+      });
+    },
+    onError: (error: any) => {
+      const message = error?.message || "로그인에 실패했습니다";
+      toast({
+        title: "로그인 실패",
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleOfficeLogout = () => {
+    setOfficeSession(null);
     setCurrentRole('');
   };
 
@@ -320,11 +400,24 @@ export default function AppContent() {
   }
 
   if (currentRole === 'field') {
+    if (!fieldSession) {
+      return (
+        <FieldLogin
+          fieldStaffList={fieldStaffList}
+          onLogin={(staffId, password) => fieldLoginMutation.mutate({ staffId, password })}
+          isLoading={fieldLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
+      );
+    }
+
     return (
       <FieldDashboard
+        fieldName={fieldSession.staffName}
+        fieldPhone={fieldSession.staffPhone}
         reports={reports}
         fieldStaffList={fieldStaffList}
-        onBack={() => setCurrentRole('')}
+        onLogout={handleFieldLogout}
         onApprove={(reportId, data) => fieldApproveMutation.mutate({ reportId, data })}
         onReject={(reportId, reason) => fieldRejectMutation.mutate({ reportId, reason })}
         onDownloadReport={handleDownloadReport}
@@ -333,11 +426,24 @@ export default function AppContent() {
   }
 
   if (currentRole === 'office') {
+    if (!officeSession) {
+      return (
+        <OfficeLogin
+          officeStaffList={officeStaffList}
+          onLogin={(staffId, password) => officeLoginMutation.mutate({ staffId, password })}
+          isLoading={officeLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
+      );
+    }
+
     return (
       <OfficeDashboard
+        officeName={officeSession.staffName}
+        officePhone={officeSession.staffPhone}
         reports={reports}
         officeStaffList={officeStaffList}
-        onBack={() => setCurrentRole('')}
+        onLogout={handleOfficeLogout}
         onApprove={(reportId, data) => officeApproveMutation.mutate({ reportId, data })}
         onReject={(reportId, reason) => officeRejectMutation.mutate({ reportId, reason })}
         onDownloadReport={handleDownloadReport}

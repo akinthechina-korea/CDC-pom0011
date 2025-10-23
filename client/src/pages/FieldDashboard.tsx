@@ -16,9 +16,11 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
 interface FieldDashboardProps {
+  fieldName: string;
+  fieldPhone: string;
   reports: Report[];
   fieldStaffList: FieldStaff[];
-  onBack: () => void;
+  onLogout: () => void;
   onApprove: (reportId: string, data: {
     fieldStaff: string;
     fieldPhone: string;
@@ -30,9 +32,11 @@ interface FieldDashboardProps {
 }
 
 export default function FieldDashboard({
+  fieldName,
+  fieldPhone,
   reports,
   fieldStaffList,
-  onBack,
+  onLogout,
   onApprove,
   onReject,
   onDownloadReport,
@@ -166,17 +170,19 @@ export default function FieldDashboard({
                 <h1 className="font-semibold text-lg" data-testid="text-field-title">
                   현장 책임자
                 </h1>
-                <p className="text-sm text-muted-foreground">보고서 검토 및 확인</p>
+                <p className="text-sm text-muted-foreground">
+                  {fieldName} ({fieldPhone})
+                </p>
               </div>
             </div>
             <Button
-              onClick={onBack}
+              onClick={onLogout}
               variant="outline"
               size="sm"
-              data-testid="button-back"
+              data-testid="button-logout"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              역할 선택
+              로그아웃
             </Button>
           </div>
         </div>

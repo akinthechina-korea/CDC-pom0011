@@ -82,6 +82,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Field staff login
+  app.post("/api/auth/field-login", async (req, res) => {
+    try {
+      const { staffId, password } = req.body;
+
+      if (!staffId || !password) {
+        return res.status(400).json({ error: "담당자와 비밀번호를 입력해주세요" });
+      }
+
+      const staff = await storage.getFieldStaff(staffId);
+      
+      if (!staff) {
+        return res.status(401).json({ error: "담당자를 찾을 수 없습니다" });
+      }
+
+      const correctPassword = staff.phone.replace(/-/g, '');
+      
+      if (password !== correctPassword) {
+        return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
+      }
+
+      res.json({
+        success: true,
+        staffId: staff.id,
+        staffName: staff.name,
+        staffPhone: staff.phone,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
+    }
+  });
+
+  // Office staff login
+  app.post("/api/auth/office-login", async (req, res) => {
+    try {
+      const { staffId, password } = req.body;
+
+      if (!staffId || !password) {
+        return res.status(400).json({ error: "담당자와 비밀번호를 입력해주세요" });
+      }
+
+      const staff = await storage.getOfficeStaff(staffId);
+      
+      if (!staff) {
+        return res.status(401).json({ error: "담당자를 찾을 수 없습니다" });
+      }
+
+      const correctPassword = staff.phone.replace(/-/g, '');
+      
+      if (password !== correctPassword) {
+        return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
+      }
+
+      res.json({
+        success: true,
+        staffId: staff.id,
+        staffName: staff.name,
+        staffPhone: staff.phone,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
+    }
+  });
+
   // Master data endpoints
   
   // Get all cargo

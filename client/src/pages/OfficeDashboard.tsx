@@ -16,9 +16,11 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
 interface OfficeDashboardProps {
+  officeName: string;
+  officePhone: string;
   reports: Report[];
   officeStaffList: OfficeStaff[];
-  onBack: () => void;
+  onLogout: () => void;
   onApprove: (reportId: string, data: {
     officeStaff: string;
     officePhone: string;
@@ -30,9 +32,11 @@ interface OfficeDashboardProps {
 }
 
 export default function OfficeDashboard({
+  officeName,
+  officePhone,
   reports,
   officeStaffList,
-  onBack,
+  onLogout,
   onApprove,
   onReject,
   onDownloadReport,
@@ -157,17 +161,19 @@ export default function OfficeDashboard({
                 <h1 className="font-semibold text-lg" data-testid="text-office-title">
                   사무실 책임자
                 </h1>
-                <p className="text-sm text-muted-foreground">최종 승인 및 문서 생성</p>
+                <p className="text-sm text-muted-foreground">
+                  {officeName} ({officePhone})
+                </p>
               </div>
             </div>
             <Button
-              onClick={onBack}
+              onClick={onLogout}
               variant="outline"
               size="sm"
-              data-testid="button-back"
+              data-testid="button-logout"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              역할 선택
+              로그아웃
             </Button>
           </div>
         </div>
