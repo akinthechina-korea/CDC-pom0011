@@ -12,12 +12,14 @@ import Papa from "papaparse";
 import type { Cargo, Vehicle, FieldStaff, OfficeStaff } from "@shared/schema";
 
 interface AdminDashboardProps {
-  onBack: () => void;
+  adminName: string;
+  adminPhone: string;
+  onLogout: () => void;
 }
 
 type DataType = 'cargo' | 'vehicles' | 'field-staff' | 'office-staff';
 
-export default function AdminDashboard({ onBack }: AdminDashboardProps) {
+export default function AdminDashboard({ adminName, adminPhone, onLogout }: AdminDashboardProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<DataType>('vehicles');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -254,26 +256,31 @@ export default function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b bg-card">
+      <header className="bg-card border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onBack}
-                data-testid="button-back"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1">
               <div>
                 <h1 className="text-2xl font-bold">관리자 대시보드</h1>
-                <p className="text-sm text-muted-foreground">마스터 데이터 관리</p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-medium">{adminName}</span>
+                  <span>•</span>
+                  <span>{adminPhone}</span>
+                </div>
               </div>
             </div>
+            <Button
+              onClick={onLogout}
+              variant="outline"
+              size="sm"
+              data-testid="button-logout"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              로그아웃
+            </Button>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DataType)}>

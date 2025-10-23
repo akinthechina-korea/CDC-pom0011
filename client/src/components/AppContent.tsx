@@ -501,7 +501,9 @@ export default function AppContent() {
 
     return (
       <AdminDashboard
-        onBack={handleAdminLogout}
+        adminName={adminSession.staffName}
+        adminPhone={adminSession.staffPhone}
+        onLogout={handleAdminLogout}
       />
     );
   }
