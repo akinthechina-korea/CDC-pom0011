@@ -812,42 +812,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.moveTo(50, y)
            .lineTo(545, y)
            .stroke();
-        doc.moveDown(0.3);
+        doc.moveDown(0.5);
       };
 
-      // Header - Company Title (Smaller for single page)
-      doc.fontSize(14)
+      // Header - Company Title (Balanced size)
+      doc.fontSize(16)
          .font('NotoSansCJK-Bold')
          .text('(株)天 一 國 際 物 流', { align: 'center' });
       
-      doc.moveDown(0.2);
+      doc.moveDown(0.4);
 
       // Company Slogan
-      doc.fontSize(9)
+      doc.fontSize(10)
          .font('NotoSansCJK')
          .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', { align: 'center' });
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
       // Company Address and Contact
-      doc.fontSize(8)
+      doc.fontSize(9)
          .text('경기도 평택시 포승읍 평택항로 95', { align: 'center' });
       doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', { align: 'center' });
       doc.text('www.chunilkor.co.kr', { align: 'center' });
       
-      doc.moveDown(0.6);
+      doc.moveDown(1);
       addDivider();
-      doc.moveDown(0.6);
+      doc.moveDown(1);
 
       // Document Title
-      doc.fontSize(13)
+      doc.fontSize(14)
          .font('NotoSansCJK-Bold')
          .text('컨테이너 DAMAGE 확인서', { align: 'center' });
       
-      doc.moveDown(0.8);
+      doc.moveDown(1.2);
 
       // Document Info
-      doc.fontSize(9)
+      doc.fontSize(10)
          .font('NotoSansCJK-Bold')
          .text('발 신: ', { continued: true })
          .font('NotoSansCJK')
@@ -858,10 +858,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .font('NotoSansCJK')
          .text('컨테이너 DAMAGE의 건');
       
-      doc.moveDown(0.5);
+      doc.moveDown(0.8);
 
       // Container Information
-      doc.fontSize(8)
+      doc.fontSize(10)
          .font('NotoSansCJK-Bold')
          .text('Container No.: ', { continued: true })
          .font('NotoSansCJK')
@@ -882,117 +882,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .font('NotoSansCJK')
          .text(report.driverName);
       
-      doc.moveDown(0.8);
+      doc.moveDown(1.2);
 
       // Content Section Header
-      doc.fontSize(10)
+      doc.fontSize(11)
          .font('NotoSansCJK-Bold')
          .text('내 용');
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
-      doc.fontSize(8)
+      doc.fontSize(10)
          .font('NotoSansCJK-Bold')
          .text('파손 유형:');
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
       // Driver Section
       doc.font('NotoSansCJK-Bold')
          .text('[운송기사]', { continued: false });
       doc.font('NotoSansCJK')
-         .text('기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이', { indent: 15 });
-      doc.text('있는걸 발견했습니다. 이미지 부착한대로.', { indent: 15 });
+         .text('기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이', { indent: 20 });
+      doc.text('있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
       // Field Staff Section
       doc.font('NotoSansCJK-Bold')
          .text('[현장 책임자]', { continued: false });
       doc.font('NotoSansCJK')
-         .text('현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너', { indent: 15 });
-      doc.text('원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 15 });
+         .text('현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너', { indent: 20 });
+      doc.text('원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
       // Office Staff Section
       doc.font('NotoSansCJK-Bold')
          .text('[사무실 책임자]', { continued: false });
       doc.font('NotoSansCJK')
-         .text('현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손', { indent: 15 });
-      doc.text('등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 15 });
+         .text('현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손', { indent: 20 });
+      doc.text('등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
       
-      doc.moveDown(0.8);
+      doc.moveDown(1.2);
 
       // Remarks Section
-      doc.fontSize(10)
+      doc.fontSize(11)
          .font('NotoSansCJK-Bold')
          .text('비 고');
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
-      doc.fontSize(8)
+      doc.fontSize(10)
          .font('NotoSansCJK')
-         .text('1. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을', { indent: 15 });
-      doc.text('   컨테이너 운송 기사님과 확인하였습니다.', { indent: 15 });
+         .text('1. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을', { indent: 20 });
+      doc.text('   컨테이너 운송 기사님과 확인하였습니다.', { indent: 20 });
       
-      doc.moveDown(0.2);
+      doc.moveDown(0.4);
       
-      doc.text('2. 당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.', { indent: 15 });
+      doc.text('2. 당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.', { indent: 20 });
       
-      doc.moveDown(0.2);
+      doc.moveDown(0.4);
       
-      doc.text('3. 상기와 같이 확인 합니다.', { indent: 15 });
+      doc.text('3. 상기와 같이 확인 합니다.', { indent: 20 });
       
-      doc.moveDown(0.8);
+      doc.moveDown(1.2);
 
       // Signature Section
-      doc.fontSize(10)
+      doc.fontSize(11)
          .font('NotoSansCJK-Bold')
          .text('서 명');
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
-      doc.fontSize(8)
+      doc.fontSize(10)
          .font('NotoSansCJK-Bold')
          .text('운송기사: ', { continued: true })
          .font('NotoSansCJK')
          .text(report.driverName);
       doc.font('NotoSansCJK')
-         .text(`서명: ${report.driverSignature}`, { indent: 15 });
+         .text(`서명: ${report.driverSignature}`, { indent: 20 });
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
       doc.font('NotoSansCJK-Bold')
          .text('현장책임자: ', { continued: true })
          .font('NotoSansCJK')
          .text(report.fieldStaff || '');
       doc.font('NotoSansCJK')
-         .text(`서명: ${report.fieldSignature || ''}`, { indent: 15 });
+         .text(`서명: ${report.fieldSignature || ''}`, { indent: 20 });
       
-      doc.moveDown(0.3);
+      doc.moveDown(0.5);
 
       doc.font('NotoSansCJK-Bold')
          .text('사무실 책임자: ', { continued: true })
          .font('NotoSansCJK')
          .text(report.officeStaff || '');
       doc.font('NotoSansCJK')
-         .text(`서명: ${report.officeSignature || ''}`, { indent: 15 });
+         .text(`서명: ${report.officeSignature || ''}`, { indent: 20 });
       
-      doc.moveDown(0.6);
+      doc.moveDown(1);
 
       // Date
-      doc.fontSize(8)
+      doc.fontSize(10)
          .font('NotoSansCJK-Bold')
          .text('작성일시: ', { continued: true })
          .font('NotoSansCJK')
          .text(dateStr);
       
-      doc.moveDown(0.8);
+      doc.moveDown(1.5);
       addDivider();
 
       // Footer
-      doc.fontSize(7)
+      doc.fontSize(8)
          .font('NotoSansCJK')
          .text('본 확인서는 천일국제물류에서 발행한 공식 문서입니다.', { align: 'center' });
 
