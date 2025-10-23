@@ -79,7 +79,7 @@
 - `PUT /api/reports/:id/resubmit` - 보고서 재제출 (기사)
 - `PUT /api/reports/:id/field-review` - 현장 검토 (승인/반려)
 - `PUT /api/reports/:id/office-approve` - 사무실 최종 승인
-- `GET /api/reports/:id/download` - 확인서 다운로드
+- `GET /api/reports/:id/download` - 확인서 PDF 다운로드 (Noto Sans KR 폰트 사용)
 
 ### 파일 업로드
 - `POST /api/upload/damage-photo` - 파손 사진 업로드 (최대 5MB, JPG/PNG/WEBP)
@@ -200,6 +200,14 @@
    - 웹사이트 링크는 새 탭에서 열림 (rel="noopener noreferrer")
    - flex-col min-h-screen 레이아웃으로 푸터가 항상 페이지 하단에 위치
    - Footer 컴포넌트를 생성하여 모든 페이지에 추가 완료
+13. **PDF 다운로드 기능** - 완료된 보고서를 전문적인 PDF 문서로 다운로드
+   - PDFKit 라이브러리 사용하여 PDF 생성
+   - Noto Sans KR 폰트 번들링으로 한글 완벽 지원
+   - 세련된 디자인: 적절한 여백, 줄 간격, 폰트 크기 차별화
+   - 템플릿 내용: 회사 정보, 보고서 정보, 내용(운송기사/현장책임자/사무실책임자), 비고, 서명
+   - 회사 슬로건: "수입에서 통관하여 배송까지 천일국제물류에서 책임집니다"
+   - 구분선과 섹션 헤더로 명확한 정보 구조화
+   - 파일명 형식: `DAMAGE_{컨테이너번호}.pdf`
 
 ### 보류된 기능
 - **이메일 알림 시스템** - 사용자가 이메일 통합을 취소함. 향후 구현을 원하는 경우 Resend 또는 SendGrid 연동 필요

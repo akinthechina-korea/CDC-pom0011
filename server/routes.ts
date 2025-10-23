@@ -18,6 +18,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import PDFDocument from "pdfkit";
 
 // Configure multer for file upload
 const uploadDir = path.join(process.cwd(), "attached_assets", "damage_photos");
@@ -765,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download report as text file
+  // Download report as PDF file
   app.get("/api/reports/:id/download", async (req, res) => {
     try {
       const report = await storage.getReport(req.params.id);
@@ -781,46 +782,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? new Date(report.completedAt).toLocaleString('ko-KR')
         : new Date().toLocaleString('ko-KR');
 
-      const content = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // Create PDF document
+      const doc = new PDFDocument({
+        size: 'A4',
+        margins: {
+          top: 50,
+          bottom: 50,
+          left: 50,
+          right: 50
+        }
+      });
 
-수 입 에 서 통 관 하 여 배 송 까 지 천 일 국 제 물 류 에 서 책 임 집 니 다
+      // Register Korean fonts
+      const fontPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansKR.ttf');
+      const fontBoldPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansKR-Bold.ttf');
+      doc.registerFont('NotoSansKR', fontPath);
+      doc.registerFont('NotoSansKR-Bold', fontBoldPath);
 
-(株)天 一 國 際 物 流
-경기도 평택시 포승읍 평택항로 95
-TEL: 031-683-7040, FAX: 031-683-7044
+      // Set response headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // Pipe PDF to response
+      doc.pipe(res);
 
-발 신: ${report.officeStaff}
-제 목: 컨테이너 DAMAGE의 건
+      // Helper function to add divider line
+      const addDivider = () => {
+        const y = doc.y;
+        doc.moveTo(50, y)
+           .lineTo(545, y)
+           .stroke();
+        doc.moveDown(0.5);
+      };
 
-Container No.: ${report.containerNo}
-B/L No.: ${report.blNo}
-차량 번호: ${report.vehicleNo}
-운송 기사: ${report.driverName}
+      // Header - Company Title (Large)
+      doc.fontSize(18)
+         .font('NotoSansKR-Bold')
+         .text('(株)天 一 國 際 物 流', { align: 'center' });
+      
+      doc.moveDown(0.3);
 
-파손 유형:
+      // Company Slogan
+      doc.fontSize(11)
+         .font('NotoSansKR')
+         .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', { align: 'center' });
+      
+      doc.moveDown(0.5);
 
-1. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을 컨테이너 운송 기사님과 확인하였습니다.
+      // Company Address and Contact
+      doc.fontSize(9)
+         .text('경기도 평택시 포승읍 평택항로 95', { align: 'center' });
+      doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', { align: 'center' });
+      
+      doc.moveDown(1);
+      addDivider();
+      doc.moveDown(1);
 
-2. 당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.
+      // Document Title
+      doc.fontSize(16)
+         .font('NotoSansKR-Bold')
+         .text('컨테이너 DAMAGE 확인서', { align: 'center' });
+      
+      doc.moveDown(1.5);
 
-3. 상기와 같이 확인 합니다.
+      // Document Info
+      doc.fontSize(11)
+         .font('NotoSansKR-Bold')
+         .text('발 신: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.officeStaff || '');
+      
+      doc.font('NotoSansKR-Bold')
+         .text('제 목: ', { continued: true })
+         .font('NotoSansKR')
+         .text('컨테이너 DAMAGE의 건');
+      
+      doc.moveDown(1);
 
-[운송기사] ${report.driverDamage}
-[현장책임] ${report.fieldDamage}
-[사무실] ${report.officeDamage}
+      // Container Information
+      doc.fontSize(10)
+         .font('NotoSansKR-Bold')
+         .text('Container No.: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.containerNo);
+      
+      doc.font('NotoSansKR-Bold')
+         .text('B/L No.: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.blNo);
+      
+      doc.font('NotoSansKR-Bold')
+         .text('차량 번호: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.vehicleNo);
+      
+      doc.font('NotoSansKR-Bold')
+         .text('운송 기사: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.driverName);
+      
+      doc.moveDown(1.5);
 
-현장책임자: ${report.fieldStaff}  서명: ${report.fieldSignature}
-사무실 책임자: ${report.officeStaff}  서명: ${report.officeSignature}
-작성일시: ${dateStr}
+      // Content Section Header
+      doc.fontSize(12)
+         .font('NotoSansKR-Bold')
+         .text('내 용');
+      
+      doc.moveDown(0.5);
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+      doc.fontSize(10)
+         .font('NotoSansKR-Bold')
+         .text('파손 유형:');
+      
+      doc.moveDown(0.5);
 
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.txt"`);
-      res.send(content);
+      // Driver Section
+      doc.font('NotoSansKR-Bold')
+         .text('[운송기사]', { continued: false });
+      doc.font('NotoSansKR')
+         .text('기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이', { indent: 20 });
+      doc.text('있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
+      
+      doc.moveDown(0.5);
+
+      // Field Staff Section
+      doc.font('NotoSansKR-Bold')
+         .text('[현장 책임자]', { continued: false });
+      doc.font('NotoSansKR')
+         .text('현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너', { indent: 20 });
+      doc.text('원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
+      
+      doc.moveDown(0.5);
+
+      // Office Staff Section
+      doc.font('NotoSansKR-Bold')
+         .text('[사무실 책임자]', { continued: false });
+      doc.font('NotoSansKR')
+         .text('현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손', { indent: 20 });
+      doc.text('등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
+      
+      doc.moveDown(1.5);
+
+      // Remarks Section
+      doc.fontSize(12)
+         .font('NotoSansKR-Bold')
+         .text('비 고');
+      
+      doc.moveDown(0.5);
+
+      doc.fontSize(10)
+         .font('NotoSansKR')
+         .text('1. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을', { indent: 20 });
+      doc.text('   컨테이너 운송 기사님과 확인하였습니다.', { indent: 20 });
+      
+      doc.moveDown(0.3);
+      
+      doc.text('2. 당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.', { indent: 20 });
+      
+      doc.moveDown(0.3);
+      
+      doc.text('3. 상기와 같이 확인 합니다.', { indent: 20 });
+      
+      doc.moveDown(1.5);
+
+      // Signature Section
+      doc.fontSize(12)
+         .font('NotoSansKR-Bold')
+         .text('서 명');
+      
+      doc.moveDown(0.5);
+
+      doc.fontSize(10)
+         .font('NotoSansKR-Bold')
+         .text('운송기사: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.driverName);
+      doc.font('NotoSansKR')
+         .text(`서명: ${report.driverSignature}`, { indent: 20 });
+      
+      doc.moveDown(0.5);
+
+      doc.font('NotoSansKR-Bold')
+         .text('현장책임자: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.fieldStaff || '');
+      doc.font('NotoSansKR')
+         .text(`서명: ${report.fieldSignature || ''}`, { indent: 20 });
+      
+      doc.moveDown(0.5);
+
+      doc.font('NotoSansKR-Bold')
+         .text('사무실 책임자: ', { continued: true })
+         .font('NotoSansKR')
+         .text(report.officeStaff || '');
+      doc.font('NotoSansKR')
+         .text(`서명: ${report.officeSignature || ''}`, { indent: 20 });
+      
+      doc.moveDown(1);
+
+      // Date
+      doc.fontSize(10)
+         .font('NotoSansKR-Bold')
+         .text('작성일시: ', { continued: true })
+         .font('NotoSansKR')
+         .text(dateStr);
+      
+      doc.moveDown(1.5);
+      addDivider();
+
+      // Footer
+      doc.fontSize(8)
+         .font('NotoSansKR')
+         .text('본 확인서는 천일국제물류에서 발행한 공식 문서입니다.', { align: 'center' });
+
+      // Finalize PDF
+      doc.end();
     } catch (error) {
+      console.error('PDF generation error:', error);
       res.status(500).json({ error: "파일 다운로드 실패" });
     }
   });
