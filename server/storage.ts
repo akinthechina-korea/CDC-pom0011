@@ -1,3 +1,4 @@
+// Blueprint reference: javascript_database
 import type { 
   Report, InsertReport,
   Cargo, InsertCargo,
@@ -5,7 +6,9 @@ import type {
   FieldStaff, InsertFieldStaff,
   OfficeStaff, InsertOfficeStaff,
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { reports, cargo, vehicles, fieldStaff, officeStaff } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Reports
@@ -36,187 +39,115 @@ export interface IStorage {
   createOfficeStaff(staff: InsertOfficeStaff): Promise<OfficeStaff>;
 }
 
-export class MemStorage implements IStorage {
-  private reports: Map<string, Report>;
-  private cargo: Map<string, Cargo>;
-  private vehicles: Map<string, Vehicle>;
-  private fieldStaff: Map<string, FieldStaff>;
-  private officeStaff: Map<string, OfficeStaff>;
-
-  constructor() {
-    this.reports = new Map();
-    this.cargo = new Map();
-    this.vehicles = new Map();
-    this.fieldStaff = new Map();
-    this.officeStaff = new Map();
-    
-    this.initializeSampleData();
-  }
-
-  private initializeSampleData() {
-    // Sample Cargo
-    const sampleCargo: InsertCargo[] = [
-      { containerNo: 'TCLU8239466', blNo: 'CHL20251001' },
-      { containerNo: 'MSKU4598321', blNo: 'CHL20251002' },
-      { containerNo: 'TEMU6198324', blNo: 'CHL20251003' },
-    ];
-
-    sampleCargo.forEach(cargo => {
-      const id = randomUUID();
-      this.cargo.set(id, { id, ...cargo });
-    });
-
-    // Sample Vehicles
-    const sampleVehicles: InsertVehicle[] = [
-      { vehicleNo: '89하1234', driverName: '박영호', driverPhone: '010-9942-1118' },
-      { vehicleNo: '81머5532', driverName: '최민재', driverPhone: '010-7102-9983' },
-      { vehicleNo: '83기9224', driverName: '오세민', driverPhone: '010-2994-8821' },
-    ];
-
-    sampleVehicles.forEach(vehicle => {
-      const id = randomUUID();
-      this.vehicles.set(id, { id, ...vehicle });
-    });
-
-    // Sample Field Staff
-    const sampleFieldStaff: InsertFieldStaff[] = [
-      { name: '김도훈', phone: '010-2384-1156' },
-      { name: '장지윤', phone: '010-5529-6681' },
-      { name: '정현준', phone: '010-7132-2248' },
-    ];
-
-    sampleFieldStaff.forEach(staff => {
-      const id = randomUUID();
-      this.fieldStaff.set(id, { id, ...staff });
-    });
-
-    // Sample Office Staff
-    const sampleOfficeStaff: InsertOfficeStaff[] = [
-      { name: '이수진', phone: '010-4941-7742' },
-      { name: '박지연', phone: '010-9321-4482' },
-      { name: '김민하', phone: '010-844-9931' },
-    ];
-
-    sampleOfficeStaff.forEach(staff => {
-      const id = randomUUID();
-      this.officeStaff.set(id, { id, ...staff });
-    });
-  }
-
+export class DatabaseStorage implements IStorage {
   // Reports
   async getAllReports(): Promise<Report[]> {
-    return Array.from(this.reports.values()).sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    });
+    return await db.select().from(reports).orderBy(desc(reports.createdAt));
   }
 
   async getReport(id: string): Promise<Report | undefined> {
-    return this.reports.get(id);
+    const [report] = await db.select().from(reports).where(eq(reports.id, id));
+    return report || undefined;
   }
 
   async createReport(insertReport: Omit<InsertReport, 'id'>): Promise<Report> {
-    const id = randomUUID();
-    const now = new Date();
-    const report: Report = {
-      id,
-      ...insertReport,
-      createdAt: now,
-      driverSubmittedAt: null,
-      fieldSubmittedAt: null,
-      completedAt: null,
-      rejectedAt: null,
-      fieldStaff: null,
-      fieldPhone: null,
-      fieldDamage: null,
-      fieldSignature: null,
-      officeStaff: null,
-      officePhone: null,
-      officeDamage: null,
-      officeSignature: null,
-      rejectionReason: null,
-    };
-    this.reports.set(id, report);
+    const [report] = await db
+      .insert(reports)
+      .values(insertReport as InsertReport)
+      .returning();
     return report;
   }
 
   async updateReport(id: string, updates: Partial<Report>): Promise<Report | undefined> {
-    const report = this.reports.get(id);
-    if (!report) return undefined;
-
-    const updatedReport = { ...report, ...updates };
-    this.reports.set(id, updatedReport);
-    return updatedReport;
+    // Filter out undefined values to prevent NULL being written to non-nullable columns
+    const definedUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== undefined)
+    );
+    
+    const [report] = await db
+      .update(reports)
+      .set(definedUpdates)
+      .where(eq(reports.id, id))
+      .returning();
+    return report || undefined;
   }
 
   // Cargo
   async getAllCargo(): Promise<Cargo[]> {
-    return Array.from(this.cargo.values());
+    return await db.select().from(cargo);
   }
 
   async getCargo(id: string): Promise<Cargo | undefined> {
-    return this.cargo.get(id);
+    const [item] = await db.select().from(cargo).where(eq(cargo.id, id));
+    return item || undefined;
   }
 
   async createCargo(insertCargo: InsertCargo): Promise<Cargo> {
-    const id = randomUUID();
-    const cargo: Cargo = { id, ...insertCargo };
-    this.cargo.set(id, cargo);
-    return cargo;
+    const [item] = await db
+      .insert(cargo)
+      .values(insertCargo)
+      .returning();
+    return item;
   }
 
   // Vehicles
   async getAllVehicles(): Promise<Vehicle[]> {
-    return Array.from(this.vehicles.values());
+    return await db.select().from(vehicles);
   }
 
   async getVehicle(id: string): Promise<Vehicle | undefined> {
-    return this.vehicles.get(id);
+    const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, id));
+    return vehicle || undefined;
   }
 
   async getVehicleByNumber(vehicleNo: string): Promise<Vehicle | undefined> {
-    return Array.from(this.vehicles.values()).find(v => v.vehicleNo === vehicleNo);
+    const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.vehicleNo, vehicleNo));
+    return vehicle || undefined;
   }
 
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
-    const id = randomUUID();
-    const vehicle: Vehicle = { id, ...insertVehicle };
-    this.vehicles.set(id, vehicle);
+    const [vehicle] = await db
+      .insert(vehicles)
+      .values(insertVehicle)
+      .returning();
     return vehicle;
   }
 
   // Field Staff
   async getAllFieldStaff(): Promise<FieldStaff[]> {
-    return Array.from(this.fieldStaff.values());
+    return await db.select().from(fieldStaff);
   }
 
   async getFieldStaff(id: string): Promise<FieldStaff | undefined> {
-    return this.fieldStaff.get(id);
+    const [staff] = await db.select().from(fieldStaff).where(eq(fieldStaff.id, id));
+    return staff || undefined;
   }
 
   async createFieldStaff(insertStaff: InsertFieldStaff): Promise<FieldStaff> {
-    const id = randomUUID();
-    const staff: FieldStaff = { id, ...insertStaff };
-    this.fieldStaff.set(id, staff);
+    const [staff] = await db
+      .insert(fieldStaff)
+      .values(insertStaff)
+      .returning();
     return staff;
   }
 
   // Office Staff
   async getAllOfficeStaff(): Promise<OfficeStaff[]> {
-    return Array.from(this.officeStaff.values());
+    return await db.select().from(officeStaff);
   }
 
   async getOfficeStaff(id: string): Promise<OfficeStaff | undefined> {
-    return this.officeStaff.get(id);
+    const [staff] = await db.select().from(officeStaff).where(eq(officeStaff.id, id));
+    return staff || undefined;
   }
 
   async createOfficeStaff(insertStaff: InsertOfficeStaff): Promise<OfficeStaff> {
-    const id = randomUUID();
-    const staff: OfficeStaff = { id, ...insertStaff };
-    this.officeStaff.set(id, staff);
+    const [staff] = await db
+      .insert(officeStaff)
+      .values(insertStaff)
+      .returning();
     return staff;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
