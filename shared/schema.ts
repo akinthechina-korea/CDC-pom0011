@@ -52,6 +52,7 @@ export type OfficeStaff = typeof officeStaff.$inferSelect;
 // Damage reports
 export const reports = pgTable("reports", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reportDate: text("report_date").notNull(),
   containerNo: text("container_no").notNull(),
   blNo: text("bl_no").notNull(),
   vehicleNo: text("vehicle_no").notNull(),
@@ -89,6 +90,7 @@ export const insertReportSchema = createInsertSchema(reports).omit({
   completedAt: true,
   rejectedAt: true,
 }).extend({
+  reportDate: z.string().min(1, "날짜를 선택하세요"),
   containerNo: z.string().min(1, "컨테이너 번호를 입력하세요"),
   blNo: z.string().min(1, "B/L 번호를 입력하세요"),
   driverDamage: z.string().min(1, "파손 내용을 입력하세요"),
