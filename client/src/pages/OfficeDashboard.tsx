@@ -12,6 +12,8 @@ import { FileText, ArrowLeft, CheckCircle, Download } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { useToast } from "@/hooks/use-toast";
 import type { Report, OfficeStaff } from "@shared/schema";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface OfficeDashboardProps {
   reports: Report[];
@@ -38,6 +40,11 @@ export default function OfficeDashboard({
   const { toast } = useToast();
 
   const DEFAULT_OFFICE_DAMAGE = "현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+
+  const formatDateTime = (date: Date | string | null) => {
+    if (!date) return "";
+    return format(new Date(date), "yyyy-MM-dd HH:mm", { locale: ko });
+  };
 
   const [formData, setFormData] = useState({
     officeStaff: "",
@@ -250,23 +257,36 @@ export default function OfficeDashboard({
               <div className="space-y-4">
                 <h3 className="font-semibold">사무실 최종 승인</h3>
 
-                <div className="space-y-2">
-                  <Label htmlFor="office-staff">사무실 담당자 *</Label>
-                  <Select
-                    value={formData.officeStaff}
-                    onValueChange={handleStaffSelect}
-                  >
-                    <SelectTrigger id="office-staff" data-testid="select-office-staff">
-                      <SelectValue placeholder="선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {officeStaffList.map((staff) => (
-                        <SelectItem key={staff.id} value={staff.name}>
-                          {staff.name} - {staff.phone}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="office-staff">사무실 담당자 *</Label>
+                    <Select
+                      value={formData.officeStaff}
+                      onValueChange={handleStaffSelect}
+                    >
+                      <SelectTrigger id="office-staff" data-testid="select-office-staff">
+                        <SelectValue placeholder="선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {officeStaffList.map((staff) => (
+                          <SelectItem key={staff.id} value={staff.name}>
+                            {staff.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="office-phone">연락처</Label>
+                    <Input
+                      id="office-phone"
+                      value={formData.officePhone}
+                      readOnly
+                      className="bg-muted"
+                      data-testid="input-office-phone"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -351,6 +371,11 @@ export default function OfficeDashboard({
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  {selectedReport.driverSubmittedAt && (
+                    <CardDescription className="text-xs">
+                      제출: {formatDateTime(selectedReport.driverSubmittedAt)}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
@@ -362,6 +387,11 @@ export default function OfficeDashboard({
                 <Card className="bg-chart-2/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">현장 확인 내용</CardTitle>
+                    {selectedReport.fieldSubmittedAt && (
+                      <CardDescription className="text-xs">
+                        확인: {formatDateTime(selectedReport.fieldSubmittedAt)}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.fieldDamage}</p>
@@ -376,6 +406,11 @@ export default function OfficeDashboard({
                 <Card className="bg-chart-1/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">사무실 확인 내용</CardTitle>
+                    {selectedReport.completedAt && (
+                      <CardDescription className="text-xs">
+                        승인: {formatDateTime(selectedReport.completedAt)}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.officeDamage}</p>

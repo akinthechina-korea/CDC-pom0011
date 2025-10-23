@@ -12,6 +12,8 @@ import { ReportCard } from "@/components/ReportCard";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { useToast } from "@/hooks/use-toast";
 import type { Report, Cargo } from "@shared/schema";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface DriverDashboardProps {
   driverName: string;
@@ -57,6 +59,11 @@ export default function DriverDashboard({
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
+  };
+
+  const formatDateTime = (date: Date | string | null) => {
+    if (!date) return "";
+    return format(new Date(date), "yyyy-MM-dd HH:mm", { locale: ko });
   };
 
   const [formData, setFormData] = useState({
@@ -486,6 +493,11 @@ export default function DriverDashboard({
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  {selectedReport.driverSubmittedAt && (
+                    <CardDescription className="text-xs">
+                      제출: {formatDateTime(selectedReport.driverSubmittedAt)}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
@@ -493,10 +505,31 @@ export default function DriverDashboard({
                 </CardContent>
               </Card>
 
+              {selectedReport.status === 'rejected' && selectedReport.rejectionReason && (
+                <Card className="bg-destructive/5 border border-destructive/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-destructive">반려 사유</CardTitle>
+                    {selectedReport.rejectedAt && (
+                      <CardDescription className="text-xs">
+                        반려: {formatDateTime(selectedReport.rejectedAt)}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-destructive/90">{selectedReport.rejectionReason}</p>
+                  </CardContent>
+                </Card>
+              )}
+
               {selectedReport.fieldStaff && (
                 <Card className="bg-chart-2/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">현장 확인 내용</CardTitle>
+                    {selectedReport.fieldSubmittedAt && (
+                      <CardDescription className="text-xs">
+                        확인: {formatDateTime(selectedReport.fieldSubmittedAt)}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.fieldDamage}</p>
@@ -511,6 +544,11 @@ export default function DriverDashboard({
                 <Card className="bg-chart-1/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">사무실 확인 내용</CardTitle>
+                    {selectedReport.completedAt && (
+                      <CardDescription className="text-xs">
+                        승인: {formatDateTime(selectedReport.completedAt)}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.officeDamage}</p>

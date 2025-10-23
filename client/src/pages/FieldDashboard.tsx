@@ -12,6 +12,8 @@ import { ClipboardCheck, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { useToast } from "@/hooks/use-toast";
 import type { Report, FieldStaff } from "@shared/schema";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface FieldDashboardProps {
   reports: Report[];
@@ -39,6 +41,11 @@ export default function FieldDashboard({
   const { toast } = useToast();
 
   const DEFAULT_FIELD_DAMAGE = "현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+
+  const formatDateTime = (date: Date | string | null) => {
+    if (!date) return "";
+    return format(new Date(date), "yyyy-MM-dd HH:mm", { locale: ko });
+  };
 
   const [formData, setFormData] = useState({
     fieldStaff: "",
@@ -408,6 +415,11 @@ export default function FieldDashboard({
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  {selectedReport.driverSubmittedAt && (
+                    <CardDescription className="text-xs">
+                      제출: {formatDateTime(selectedReport.driverSubmittedAt)}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
@@ -419,6 +431,11 @@ export default function FieldDashboard({
                 <Card className="bg-chart-2/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">현장 확인 내용</CardTitle>
+                    {selectedReport.fieldSubmittedAt && (
+                      <CardDescription className="text-xs">
+                        확인: {formatDateTime(selectedReport.fieldSubmittedAt)}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.fieldDamage}</p>
@@ -433,6 +450,11 @@ export default function FieldDashboard({
                 <Card className="bg-chart-1/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">사무실 확인 내용</CardTitle>
+                    {selectedReport.completedAt && (
+                      <CardDescription className="text-xs">
+                        승인: {formatDateTime(selectedReport.completedAt)}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.officeDamage}</p>
