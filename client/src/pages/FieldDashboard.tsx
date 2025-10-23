@@ -120,9 +120,9 @@ export default function FieldDashboard({
     resetForm();
   };
 
-  // 검토 대기: 기사 제출 시간 기준 최신순
+  // 검토 대기: 기사 제출 시간 기준 최신순 (사무실 반려 제외)
   const pendingReviewReports = reports
-    .filter(r => r.status === 'driver_submitted')
+    .filter(r => r.status === 'driver_submitted' && !r.rejectionReason)
     .sort((a, b) => {
       const timeA = a.driverSubmittedAt ? new Date(a.driverSubmittedAt).getTime() : 0;
       const timeB = b.driverSubmittedAt ? new Date(b.driverSubmittedAt).getTime() : 0;
@@ -147,9 +147,9 @@ export default function FieldDashboard({
       return timeB - timeA;
     });
   
-  // 반려: 반려 시간 기준 최신순
+  // 반려: 반려 시간 기준 최신순 (현장 반려 + 사무실 반려)
   const rejectedReports = reports
-    .filter(r => r.status === 'rejected')
+    .filter(r => r.status === 'rejected' || (r.status === 'driver_submitted' && r.rejectionReason))
     .sort((a, b) => {
       const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
       const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
