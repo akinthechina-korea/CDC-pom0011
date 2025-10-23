@@ -214,7 +214,7 @@ export default function DriverDashboard({
                 검토대기 ({pendingReviewReports.length})
               </TabsTrigger>
               <TabsTrigger value="reviewed" data-testid="tab-reviewed">
-                검토완료/승인대기 ({reviewedReports.length})
+                승인대기 ({reviewedReports.length})
               </TabsTrigger>
               <TabsTrigger value="completed" data-testid="tab-completed">
                 승인완료 ({completedReports.length})
