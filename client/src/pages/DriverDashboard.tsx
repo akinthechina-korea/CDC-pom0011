@@ -135,9 +135,9 @@ export default function DriverDashboard({
 
   const myReports = reports.filter(r => r.vehicleNo === vehicleNo);
   
-  // 검토 대기: 기사 제출 시간 기준 최신순
+  // 검토 대기: 기사 제출 시간 기준 최신순 (현장/사무실 반려 제외)
   const pendingReviewReports = myReports
-    .filter(r => r.status === 'driver_submitted')
+    .filter(r => r.status === 'driver_submitted' && !r.rejectionReason)
     .sort((a, b) => {
       const timeA = a.driverSubmittedAt ? new Date(a.driverSubmittedAt).getTime() : 0;
       const timeB = b.driverSubmittedAt ? new Date(b.driverSubmittedAt).getTime() : 0;

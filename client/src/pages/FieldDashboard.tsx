@@ -147,9 +147,9 @@ export default function FieldDashboard({
       return timeB - timeA;
     });
   
-  // 반려: 반려 시간 기준 최신순 (현장 반려 + 사무실 반려)
+  // 반려: 사무실이 반려한 보고서만 (현장에서 확인)
   const rejectedReports = reports
-    .filter(r => r.status === 'rejected' || (r.status === 'driver_submitted' && r.rejectionReason))
+    .filter(r => r.status === 'driver_submitted' && r.rejectionReason)
     .sort((a, b) => {
       const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
       const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
