@@ -49,11 +49,10 @@ export default function AdminLogin({ onLogin, isLoading = false, onBack }: Admin
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="admin">관리자 이름</Label>
+              <Label htmlFor="admin">유저</Label>
               <Input
                 id="admin"
                 type="text"
-                placeholder="예: 천일요비"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
                 data-testid="input-admin-name"
@@ -61,18 +60,14 @@ export default function AdminLogin({ onLogin, isLoading = false, onBack }: Admin
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">비밀번호 (연락처 번호, "-" 제외)</Label>
+              <Label htmlFor="password">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="예: 01011111111"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 data-testid="input-password"
               />
-              <p className="text-xs text-muted-foreground">
-                * 연락처 번호에서 "-"를 제거한 숫자만 입력
-              </p>
             </div>
 
             <div className="space-y-2">

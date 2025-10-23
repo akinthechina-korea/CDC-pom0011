@@ -49,11 +49,10 @@ export default function OfficeLogin({ onLogin, isLoading = false, onBack }: Offi
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="staff">담당자 이름</Label>
+              <Label htmlFor="staff">유저</Label>
               <Input
                 id="staff"
                 type="text"
-                placeholder="예: 이수진"
                 value={staffName}
                 onChange={(e) => setStaffName(e.target.value)}
                 data-testid="input-staff-name"
@@ -61,18 +60,14 @@ export default function OfficeLogin({ onLogin, isLoading = false, onBack }: Offi
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">비밀번호 (연락처 번호, "-" 제외)</Label>
+              <Label htmlFor="password">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="예: 01049417742"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 data-testid="input-password"
               />
-              <p className="text-xs text-muted-foreground">
-                * 연락처 번호에서 "-"를 제거한 숫자만 입력
-              </p>
             </div>
 
             <div className="space-y-2">

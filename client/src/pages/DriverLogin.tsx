@@ -48,11 +48,10 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="vehicle">차량번호</Label>
+              <Label htmlFor="vehicle">유저</Label>
               <Input
                 id="vehicle"
                 type="text"
-                placeholder="예: 89하1234"
                 value={vehicleNo}
                 onChange={(e) => setVehicleNo(e.target.value)}
                 data-testid="input-vehicle"
@@ -60,19 +59,15 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">비밀번호 (연락처 번호, "-" 제외)</Label>
+              <Label htmlFor="password">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="예: 01099421118"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 data-testid="input-password"
               />
-              <p className="text-xs text-muted-foreground">
-                * 연락처 번호에서 "-"를 제거한 숫자만 입력
-              </p>
             </div>
 
             <div className="space-y-3">
