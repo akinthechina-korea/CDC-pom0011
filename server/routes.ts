@@ -8,7 +8,11 @@ import {
   insertCargoSchema,
   insertVehicleSchema,
   insertFieldStaffSchema,
-  insertOfficeStaffSchema
+  insertOfficeStaffSchema,
+  driverLoginSchema,
+  fieldLoginSchema,
+  officeLoginSchema,
+  adminLoginSchema
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
@@ -53,13 +57,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Driver login
   app.post("/api/auth/driver-login", async (req, res) => {
     try {
-      const { vehicleNo, password } = req.body;
+      const validatedData = driverLoginSchema.parse(req.body);
 
-      if (!vehicleNo || !password) {
-        return res.status(400).json({ error: "차량번호와 비밀번호를 입력해주세요" });
-      }
-
-      const vehicle = await storage.getVehicleByNumber(vehicleNo);
+      const vehicle = await storage.getVehicleByNumber(validatedData.vehicleNo);
       
       if (!vehicle) {
         return res.status(401).json({ error: "차량번호를 찾을 수 없습니다" });
@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const correctPassword = vehicle.driverPhone.replace(/-/g, '');
       
-      if (password !== correctPassword) {
+      if (validatedData.password !== correctPassword) {
         return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
       }
 
@@ -78,6 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         driverPhone: vehicle.driverPhone,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "입력 데이터 오류", 
+          details: error.errors 
+        });
+      }
       res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
     }
   });
@@ -85,13 +91,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Field staff login
   app.post("/api/auth/field-login", async (req, res) => {
     try {
-      const { staffId, password } = req.body;
+      const validatedData = fieldLoginSchema.parse(req.body);
 
-      if (!staffId || !password) {
-        return res.status(400).json({ error: "담당자와 비밀번호를 입력해주세요" });
-      }
-
-      const staff = await storage.getFieldStaff(staffId);
+      const staff = await storage.getFieldStaff(validatedData.staffId);
       
       if (!staff) {
         return res.status(401).json({ error: "담당자를 찾을 수 없습니다" });
@@ -99,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const correctPassword = staff.phone.replace(/-/g, '');
       
-      if (password !== correctPassword) {
+      if (validatedData.password !== correctPassword) {
         return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
       }
 
@@ -110,6 +112,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffPhone: staff.phone,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "입력 데이터 오류", 
+          details: error.errors 
+        });
+      }
       res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
     }
   });
@@ -117,13 +125,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Office staff login
   app.post("/api/auth/office-login", async (req, res) => {
     try {
-      const { staffId, password } = req.body;
+      const validatedData = officeLoginSchema.parse(req.body);
 
-      if (!staffId || !password) {
-        return res.status(400).json({ error: "담당자와 비밀번호를 입력해주세요" });
-      }
-
-      const staff = await storage.getOfficeStaff(staffId);
+      const staff = await storage.getOfficeStaff(validatedData.staffId);
       
       if (!staff) {
         return res.status(401).json({ error: "담당자를 찾을 수 없습니다" });
@@ -131,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const correctPassword = staff.phone.replace(/-/g, '');
       
-      if (password !== correctPassword) {
+      if (validatedData.password !== correctPassword) {
         return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
       }
 
@@ -142,6 +146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffPhone: staff.phone,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "입력 데이터 오류", 
+          details: error.errors 
+        });
+      }
       res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
     }
   });
@@ -149,13 +159,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin login
   app.post("/api/auth/admin-login", async (req, res) => {
     try {
-      const { staffId, password } = req.body;
+      const validatedData = adminLoginSchema.parse(req.body);
 
-      if (!staffId || !password) {
-        return res.status(400).json({ error: "관리자와 비밀번호를 입력해주세요" });
-      }
-
-      const staff = await storage.getAdminStaff(staffId);
+      const staff = await storage.getAdminStaff(validatedData.staffId);
       
       if (!staff) {
         return res.status(401).json({ error: "관리자를 찾을 수 없습니다" });
@@ -163,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const correctPassword = staff.phone.replace(/-/g, '');
       
-      if (password !== correctPassword) {
+      if (validatedData.password !== correctPassword) {
         return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
       }
 
@@ -174,6 +180,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffPhone: staff.phone,
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "입력 데이터 오류", 
+          details: error.errors 
+        });
+      }
       res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
     }
   });

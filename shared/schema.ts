@@ -122,6 +122,22 @@ export const driverLoginSchema = z.object({
 
 export type DriverLogin = z.infer<typeof driverLoginSchema>;
 
+// Field staff login schema
+export const fieldLoginSchema = z.object({
+  staffId: z.string().min(1, "담당자를 선택하세요"),
+  password: z.string().min(1, "비밀번호를 입력하세요"),
+});
+
+export type FieldLogin = z.infer<typeof fieldLoginSchema>;
+
+// Office staff login schema
+export const officeLoginSchema = z.object({
+  staffId: z.string().min(1, "담당자를 선택하세요"),
+  password: z.string().min(1, "비밀번호를 입력하세요"),
+});
+
+export type OfficeLogin = z.infer<typeof officeLoginSchema>;
+
 // Admin login schema
 export const adminLoginSchema = z.object({
   staffId: z.string().min(1, "관리자를 선택하세요"),
