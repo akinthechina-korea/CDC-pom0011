@@ -59,7 +59,7 @@ export default function DriverLogin({ vehicles, onLogin, isLoading = false, onBa
                 <SelectContent>
                   {vehicles.map((vehicle) => (
                     <SelectItem key={vehicle.id} value={vehicle.vehicleNo}>
-                      {vehicle.vehicleNo} - {vehicle.driverName}
+                      {vehicle.vehicleNo}
                     </SelectItem>
                   ))}
                 </SelectContent>
