@@ -220,6 +220,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all admin staff
+  app.get("/api/data/admin-staff", async (req, res) => {
+    try {
+      const staff = await storage.getAllAdminStaff();
+      res.json(staff);
+    } catch (error) {
+      res.status(500).json({ error: "관리자 데이터 조회 실패" });
+    }
+  });
+
   // Bulk upload endpoints for admin
   
   // Bulk upload cargo

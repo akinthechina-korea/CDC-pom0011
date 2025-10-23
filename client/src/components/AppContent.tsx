@@ -3,6 +3,7 @@ import RoleSelection from "@/pages/RoleSelection";
 import DriverLogin from "@/pages/DriverLogin";
 import FieldLogin from "@/pages/FieldLogin";
 import OfficeLogin from "@/pages/OfficeLogin";
+import AdminLogin from "@/pages/AdminLogin";
 import DriverDashboard from "@/pages/DriverDashboard";
 import FieldDashboard from "@/pages/FieldDashboard";
 import OfficeDashboard from "@/pages/OfficeDashboard";
@@ -11,7 +12,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
-import type { Report, Vehicle, Cargo, FieldStaff, OfficeStaff } from "@shared/schema";
+import type { Report, Vehicle, Cargo, FieldStaff, OfficeStaff, AdminStaff } from "@shared/schema";
 
 type Role = '' | 'driver' | 'field' | 'office' | 'admin';
 
@@ -33,11 +34,18 @@ interface OfficeSession {
   staffPhone: string;
 }
 
+interface AdminSession {
+  staffId: string;
+  staffName: string;
+  staffPhone: string;
+}
+
 export default function AppContent() {
   const [currentRole, setCurrentRole] = useState<Role>('');
   const [driverSession, setDriverSession] = useState<DriverSession | null>(null);
   const [fieldSession, setFieldSession] = useState<FieldSession | null>(null);
   const [officeSession, setOfficeSession] = useState<OfficeSession | null>(null);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
   const { toast } = useToast();
 
   // Fetch master data
@@ -55,6 +63,10 @@ export default function AppContent() {
 
   const { data: officeStaffList = [] } = useQuery<OfficeStaff[]>({
     queryKey: ['/api/data/office-staff'],
+  });
+
+  const { data: adminStaffList = [] } = useQuery<AdminStaff[]>({
+    queryKey: ['/api/data/admin-staff'],
   });
 
   // Fetch reports
@@ -155,6 +167,38 @@ export default function AppContent() {
 
   const handleOfficeLogout = () => {
     setOfficeSession(null);
+    setCurrentRole('');
+  };
+
+  // Admin login mutation
+  const adminLoginMutation = useMutation({
+    mutationFn: async (data: { staffId: string; password: string }) => {
+      const res = await apiRequest('POST', '/api/auth/admin-login', data);
+      return await res.json();
+    },
+    onSuccess: (data: { staffId: string; staffName: string; staffPhone: string }) => {
+      setAdminSession({
+        staffId: data.staffId,
+        staffName: data.staffName,
+        staffPhone: data.staffPhone,
+      });
+      toast({
+        title: "로그인 성공",
+        description: `${data.staffName}님, 환영합니다.`,
+      });
+    },
+    onError: (error: any) => {
+      const message = error?.message || "로그인에 실패했습니다";
+      toast({
+        title: "로그인 실패",
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAdminLogout = () => {
+    setAdminSession(null);
     setCurrentRole('');
   };
 
@@ -456,9 +500,20 @@ export default function AppContent() {
   }
 
   if (currentRole === 'admin') {
+    if (!adminSession) {
+      return (
+        <AdminLogin
+          adminStaffList={adminStaffList}
+          onLogin={(staffId, password) => adminLoginMutation.mutate({ staffId, password })}
+          isLoading={adminLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
+      );
+    }
+
     return (
       <AdminDashboard
-        onBack={() => setCurrentRole('')}
+        onBack={handleAdminLogout}
       />
     );
   }
