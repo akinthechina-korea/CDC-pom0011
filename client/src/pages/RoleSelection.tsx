@@ -15,7 +15,7 @@ export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
         <Card className="p-8 md:p-12">
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold mb-3" data-testid="text-title">
-              컨테이너 DAMAGE 확인서
+              컨테이너 DAMAGE<br />확인서
             </h1>
             <p className="text-lg text-muted-foreground font-medium">
               (株)天 一 國 際 物 流
