@@ -130,11 +130,11 @@ export default function DriverDashboard({
                 <Truck className="w-5 h-5 text-driver" />
               </div>
               <div className="flex-1">
-                <h1 className="font-semibold text-lg" data-testid="text-driver-name">
+                <h1 className="font-semibold text-lg text-foreground" data-testid="text-driver-name">
                   {driverName}
                 </h1>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <span>{vehicleNo}</span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-medium">{vehicleNo}</span>
                   <span>•</span>
                   <span>{driverPhone}</span>
                 </div>
