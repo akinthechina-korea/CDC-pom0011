@@ -6,9 +6,10 @@
 ## 주요 기능
 
 ### 1. 역할 기반 시스템
-- **운송기사**: 파손 보고서 작성 및 제출, 반려된 보고서 수정 및 재제출
+- **운송기사**: 파손 보고서 작성 및 제출, 사진 업로드, 반려된 보고서 수정 및 재제출
 - **현장 책임자**: 기사 보고서 검토, 승인 또는 반려
 - **사무실 책임자**: 최종 승인 및 확인서 문서 생성
+- **관리자**: CSV 파일을 통한 마스터 데이터 일괄 업로드
 
 ### 2. 워크플로우
 ```
@@ -35,8 +36,10 @@
 
 ### Backend
 - Express.js
-- In-memory storage (MemStorage)
+- PostgreSQL (Neon serverless)
+- Drizzle ORM
 - Zod validation
+- Multer (파일 업로드)
 
 ### 데이터 모델
 - Reports: 파손 보고서
@@ -59,6 +62,10 @@
 - `GET /api/data/vehicles` - 차량/기사 목록
 - `GET /api/data/field-staff` - 현장 담당자 목록
 - `GET /api/data/office-staff` - 사무실 담당자 목록
+- `POST /api/data/cargo/bulk` - 화물 일괄 업로드 (CSV)
+- `POST /api/data/vehicles/bulk` - 차량 일괄 업로드 (CSV)
+- `POST /api/data/field-staff/bulk` - 현장 담당자 일괄 업로드 (CSV)
+- `POST /api/data/office-staff/bulk` - 사무실 담당자 일괄 업로드 (CSV)
 
 ### Reports
 - `GET /api/reports` - 전체 보고서 조회
@@ -67,6 +74,9 @@
 - `PUT /api/reports/:id/field-review` - 현장 검토 (승인/반려)
 - `PUT /api/reports/:id/office-approve` - 사무실 최종 승인
 - `GET /api/reports/:id/download` - 확인서 다운로드
+
+### 파일 업로드
+- `POST /api/upload/damage-photo` - 파손 사진 업로드 (최대 5MB, JPG/PNG/WEBP)
 
 ## 사용자 인증
 운송기사는 차량번호와 비밀번호로 로그인합니다:
@@ -106,9 +116,24 @@
 - 팩스: 031-683-7044
 - 슬로건: 수입에서 통관하여 배송까지 천일국제물류에서 책임집니다
 
+## 최근 업데이트 (2025-10-23)
+
+### 완료된 기능
+1. **PostgreSQL 데이터베이스 마이그레이션** - Neon 서버리스 PostgreSQL로 전환, Drizzle ORM 사용
+2. **CSV 일괄 업로드** - 관리자가 마스터 데이터를 CSV 파일로 일괄 등록/수정 가능
+3. **파손 사진 업로드** - 운송기사가 보고서 작성 시 최대 5장의 파손 사진 첨부 가능
+
+### 보류된 기능
+- **이메일 알림 시스템** - 사용자가 이메일 통합을 취소함. 향후 구현을 원하는 경우 Resend 또는 SendGrid 연동 필요
+
+### 다음 단계
+- 분석 대시보드 (통계 및 차트)
+- 검색 및 필터링 시스템
+
 ## 개발 노트
 - 한글 폰트: Noto Sans KR 사용
 - 모든 UI 텍스트는 한글로 표시
 - Material Design 원칙 적용
 - 반응형 디자인 (모바일/태블릿/데스크톱)
 - 역할별 색상 구분으로 직관적인 UX
+- 업로드된 사진은 `attached_assets/damage_photos/` 디렉토리에 저장됨
