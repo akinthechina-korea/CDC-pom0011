@@ -441,6 +441,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Office reject
+  app.put("/api/reports/:id/office-reject", async (req, res) => {
+    try {
+      const report = await storage.getReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ error: "보고서를 찾을 수 없습니다" });
+      }
+
+      if (report.status !== 'field_submitted') {
+        return res.status(400).json({ error: "현장 승인 상태의 보고서만 반려할 수 있습니다" });
+      }
+
+      const { rejectionReason } = req.body;
+      
+      if (!rejectionReason) {
+        return res.status(400).json({ error: "반려 사유를 입력해주세요" });
+      }
+
+      const updatedReport = await storage.updateReport(req.params.id, {
+        status: 'driver_submitted',
+        rejectionReason,
+        rejectedAt: new Date(),
+      });
+
+      res.json(updatedReport);
+    } catch (error) {
+      res.status(500).json({ error: "반려 처리 실패" });
+    }
+  });
+
   // Download report as text file
   app.get("/api/reports/:id/download", async (req, res) => {
     try {

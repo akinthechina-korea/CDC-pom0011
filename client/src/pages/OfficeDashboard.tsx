@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, ArrowLeft, CheckCircle, Download } from "lucide-react";
+import { FileText, ArrowLeft, CheckCircle, Download, XCircle, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { useToast } from "@/hooks/use-toast";
 import type { Report, OfficeStaff } from "@shared/schema";
@@ -25,6 +25,7 @@ interface OfficeDashboardProps {
     officeDamage: string;
     officeSignature: string;
   }) => void;
+  onReject: (reportId: string, reason: string) => void;
   onDownloadReport: (reportId: string) => void;
 }
 
@@ -33,10 +34,12 @@ export default function OfficeDashboard({
   officeStaffList,
   onBack,
   onApprove,
+  onReject,
   onDownloadReport,
 }: OfficeDashboardProps) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const { toast } = useToast();
 
   const DEFAULT_OFFICE_DAMAGE = "현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
@@ -51,6 +54,7 @@ export default function OfficeDashboard({
     officePhone: "",
     officeDamage: DEFAULT_OFFICE_DAMAGE,
     officeSignature: "",
+    rejectionReason: "",
   });
 
   const resetForm = () => {
@@ -59,6 +63,7 @@ export default function OfficeDashboard({
       officePhone: "",
       officeDamage: DEFAULT_OFFICE_DAMAGE,
       officeSignature: "",
+      rejectionReason: "",
     });
   };
 
@@ -95,6 +100,22 @@ export default function OfficeDashboard({
     resetForm();
   };
 
+  const handleReject = () => {
+    if (!selectedReport || !formData.rejectionReason) {
+      toast({
+        title: "입력 오류",
+        description: "반려 사유를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onReject(selectedReport.id, formData.rejectionReason);
+    setIsRejecting(false);
+    setSelectedReport(null);
+    resetForm();
+  };
+
   // 승인 대기: 현장 확인 시간 기준 최신순
   const pendingReports = reports
     .filter(r => r.status === 'field_submitted')
@@ -110,6 +131,15 @@ export default function OfficeDashboard({
     .sort((a, b) => {
       const timeA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
       const timeB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  
+  // 반려: 반려 시간 기준 최신순
+  const rejectedReports = reports
+    .filter(r => r.status === 'rejected')
+    .sort((a, b) => {
+      const timeA = a.rejectedAt ? new Date(a.rejectedAt).getTime() : 0;
+      const timeB = b.rejectedAt ? new Date(b.rejectedAt).getTime() : 0;
       return timeB - timeA;
     });
 
@@ -145,12 +175,15 @@ export default function OfficeDashboard({
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="pending" data-testid="tab-pending">
-              승인 대기 ({pendingReports.length})
+              승인대기 ({pendingReports.length})
             </TabsTrigger>
             <TabsTrigger value="completed" data-testid="tab-completed">
-              승인 완료 ({completedReports.length})
+              승인완료 ({completedReports.length})
+            </TabsTrigger>
+            <TabsTrigger value="rejected" data-testid="tab-rejected">
+              반려 ({rejectedReports.length})
             </TabsTrigger>
           </TabsList>
 
@@ -202,8 +235,79 @@ export default function OfficeDashboard({
               </div>
             )}
           </TabsContent>
+
+          {/* Rejected Reports */}
+          <TabsContent value="rejected" className="space-y-4">
+            {rejectedReports.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">반려된 보고서가 없습니다.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {rejectedReports.map((report) => (
+                  <ReportCard
+                    key={report.id}
+                    report={report}
+                    onClick={() => setSelectedReport(report)}
+                    showAllDetails={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
+
+      {/* Reject Report Dialog */}
+      <Dialog open={isRejecting} onOpenChange={setIsRejecting}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>보고서 반려</DialogTitle>
+            <DialogDescription>
+              반려 사유를 입력하세요. 현장 책임자가 재검토합니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">반려 사유 *</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="예: 추가 확인 필요, 사진 불명확 등"
+                value={formData.rejectionReason}
+                onChange={(e) => setFormData(prev => ({ ...prev, rejectionReason: e.target.value }))}
+                className="min-h-24"
+                data-testid="textarea-rejection"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={handleReject}
+                disabled={!formData.rejectionReason}
+                variant="destructive"
+                className="flex-1"
+                data-testid="button-confirm-reject"
+              >
+                반려 확정
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsRejecting(false);
+                  setIsApproving(true);
+                }}
+                variant="outline"
+                data-testid="button-cancel-reject"
+              >
+                취소
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Approve Report Dialog */}
       <Dialog open={isApproving} onOpenChange={setIsApproving}>
@@ -341,6 +445,17 @@ export default function OfficeDashboard({
                 <Button
                   onClick={() => {
                     setIsApproving(false);
+                    setIsRejecting(true);
+                  }}
+                  variant="destructive"
+                  data-testid="button-reject"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  반려
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsApproving(false);
                     setSelectedReport(null);
                     resetForm();
                   }}
@@ -356,7 +471,7 @@ export default function OfficeDashboard({
       </Dialog>
 
       {/* View Completed Report Dialog */}
-      <Dialog open={selectedReport !== null && !isApproving} onOpenChange={(open) => !open && setSelectedReport(null)}>
+      <Dialog open={selectedReport !== null && !isApproving && !isRejecting} onOpenChange={(open) => !open && setSelectedReport(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>승인 완료 보고서</DialogTitle>
