@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Truck, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 
 interface DriverLoginProps {
   onLogin: (vehicleNo: string, password: string) => void;
@@ -31,7 +32,8 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
   };
 
   return (
-    <div className="min-h-screen bg-driver/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-driver/5 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center space-y-4">
@@ -93,6 +95,8 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
           </CardContent>
         </Card>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }

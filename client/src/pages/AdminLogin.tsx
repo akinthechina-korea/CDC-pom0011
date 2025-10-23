@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 
 interface AdminLoginProps {
   onLogin: (adminName: string, password: string, securityCode: string) => void;
@@ -32,8 +33,9 @@ export default function AdminLogin({ onLogin, isLoading = false, onBack }: Admin
   };
 
   return (
-    <div className="min-h-screen bg-accent/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-accent/5 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
@@ -105,7 +107,9 @@ export default function AdminLogin({ onLogin, isLoading = false, onBack }: Admin
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

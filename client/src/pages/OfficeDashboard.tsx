@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, ArrowLeft, CheckCircle, Download, XCircle, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 import type { Report, OfficeStaff } from "@shared/schema";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -124,7 +125,7 @@ export default function OfficeDashboard({
     });
 
   return (
-    <div className="min-h-screen bg-office/5">
+    <div className="min-h-screen bg-office/5 flex flex-col">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
@@ -571,6 +572,7 @@ export default function OfficeDashboard({
           )}
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   );
 }

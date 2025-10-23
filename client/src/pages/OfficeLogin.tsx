@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Building2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 
 interface OfficeLoginProps {
   onLogin: (staffName: string, password: string, securityCode: string) => void;
@@ -32,8 +33,9 @@ export default function OfficeLogin({ onLogin, isLoading = false, onBack }: Offi
   };
 
   return (
-    <div className="min-h-screen bg-office/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-office/5 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 rounded-full bg-office/10 flex items-center justify-center">
@@ -105,7 +107,9 @@ export default function OfficeLogin({ onLogin, isLoading = false, onBack }: Offi
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

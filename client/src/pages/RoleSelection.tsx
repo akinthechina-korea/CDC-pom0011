@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Truck, ClipboardCheck, Settings } from "lucide-react";
+import Footer from "@/components/Footer";
 
 interface RoleSelectionProps {
   onSelectRole: (role: 'driver' | 'field' | 'office' | 'admin') => void;
@@ -8,7 +9,8 @@ interface RoleSelectionProps {
 
 export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-5xl">
         <Card className="p-8 md:p-12">
           <div className="text-center mb-12">
@@ -110,6 +112,8 @@ export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
           </div>
         </Card>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }

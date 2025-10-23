@@ -8,7 +8,6 @@ import DriverDashboard from "@/pages/DriverDashboard";
 import FieldDashboard from "@/pages/FieldDashboard";
 import OfficeDashboard from "@/pages/OfficeDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
-import Footer from "@/components/Footer";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -410,131 +409,102 @@ export default function AppContent() {
 
   // Render appropriate view based on role and state
   if (!currentRole) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <RoleSelection onSelectRole={setCurrentRole} />
-        <Footer />
-      </div>
-    );
+    return <RoleSelection onSelectRole={setCurrentRole} />;
   }
 
   if (currentRole === 'driver') {
     if (!driverSession) {
       return (
-        <div className="flex flex-col min-h-screen">
-          <DriverLogin
-            onLogin={(vehicleNo, password) => driverLoginMutation.mutate({ vehicleNo, password })}
-            isLoading={driverLoginMutation.isPending}
-            onBack={() => setCurrentRole('')}
-          />
-          <Footer />
-        </div>
+        <DriverLogin
+          onLogin={(vehicleNo, password) => driverLoginMutation.mutate({ vehicleNo, password })}
+          isLoading={driverLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
       );
     }
 
     return (
-      <div className="flex flex-col min-h-screen">
-        <DriverDashboard
-          driverName={driverSession.driverName}
-          vehicleNo={driverSession.vehicleNo}
-          driverPhone={driverSession.driverPhone}
-          reports={reports}
-          cargoList={cargoList}
-          onLogout={handleDriverLogout}
-          onCreateReport={(data) => createReportMutation.mutate(data)}
-          onUpdateReport={(reportId, data) => updateReportMutation.mutate({ reportId, data })}
-          onDownloadReport={handleDownloadReport}
-        />
-        <Footer />
-      </div>
+      <DriverDashboard
+        driverName={driverSession.driverName}
+        vehicleNo={driverSession.vehicleNo}
+        driverPhone={driverSession.driverPhone}
+        reports={reports}
+        cargoList={cargoList}
+        onLogout={handleDriverLogout}
+        onCreateReport={(data) => createReportMutation.mutate(data)}
+        onUpdateReport={(reportId, data) => updateReportMutation.mutate({ reportId, data })}
+        onDownloadReport={handleDownloadReport}
+      />
     );
   }
 
   if (currentRole === 'field') {
     if (!fieldSession) {
       return (
-        <div className="flex flex-col min-h-screen">
-          <FieldLogin
-            onLogin={(staffName, password, securityCode) => fieldLoginMutation.mutate({ staffName, password, securityCode })}
-            isLoading={fieldLoginMutation.isPending}
-            onBack={() => setCurrentRole('')}
-          />
-          <Footer />
-        </div>
+        <FieldLogin
+          onLogin={(staffName, password, securityCode) => fieldLoginMutation.mutate({ staffName, password, securityCode })}
+          isLoading={fieldLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
       );
     }
 
     return (
-      <div className="flex flex-col min-h-screen">
-        <FieldDashboard
-          fieldName={fieldSession.staffName}
-          fieldPhone={fieldSession.staffPhone}
-          reports={reports}
-          fieldStaffList={fieldStaffList}
-          onLogout={handleFieldLogout}
-          onApprove={(reportId, data) => fieldApproveMutation.mutate({ reportId, data })}
-          onReject={(reportId, reason, fieldStaff) => fieldRejectMutation.mutate({ reportId, reason, fieldStaff })}
-          onDownloadReport={handleDownloadReport}
-        />
-        <Footer />
-      </div>
+      <FieldDashboard
+        fieldName={fieldSession.staffName}
+        fieldPhone={fieldSession.staffPhone}
+        reports={reports}
+        fieldStaffList={fieldStaffList}
+        onLogout={handleFieldLogout}
+        onApprove={(reportId, data) => fieldApproveMutation.mutate({ reportId, data })}
+        onReject={(reportId, reason, fieldStaff) => fieldRejectMutation.mutate({ reportId, reason, fieldStaff })}
+        onDownloadReport={handleDownloadReport}
+      />
     );
   }
 
   if (currentRole === 'office') {
     if (!officeSession) {
       return (
-        <div className="flex flex-col min-h-screen">
-          <OfficeLogin
-            onLogin={(staffName, password, securityCode) => officeLoginMutation.mutate({ staffName, password, securityCode })}
-            isLoading={officeLoginMutation.isPending}
-            onBack={() => setCurrentRole('')}
-          />
-          <Footer />
-        </div>
+        <OfficeLogin
+          onLogin={(staffName, password, securityCode) => officeLoginMutation.mutate({ staffName, password, securityCode })}
+          isLoading={officeLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
       );
     }
 
     return (
-      <div className="flex flex-col min-h-screen">
-        <OfficeDashboard
-          officeName={officeSession.staffName}
-          officePhone={officeSession.staffPhone}
-          reports={reports}
-          officeStaffList={officeStaffList}
-          onLogout={handleOfficeLogout}
-          onApprove={(reportId, data) => officeApproveMutation.mutate({ reportId, data })}
-          onReject={(reportId, reason, officeStaff) => officeRejectMutation.mutate({ reportId, reason, officeStaff })}
-          onDownloadReport={handleDownloadReport}
-        />
-        <Footer />
-      </div>
+      <OfficeDashboard
+        officeName={officeSession.staffName}
+        officePhone={officeSession.staffPhone}
+        reports={reports}
+        officeStaffList={officeStaffList}
+        onLogout={handleOfficeLogout}
+        onApprove={(reportId, data) => officeApproveMutation.mutate({ reportId, data })}
+        onReject={(reportId, reason, officeStaff) => officeRejectMutation.mutate({ reportId, reason, officeStaff })}
+        onDownloadReport={handleDownloadReport}
+      />
     );
   }
 
   if (currentRole === 'admin') {
     if (!adminSession) {
       return (
-        <div className="flex flex-col min-h-screen">
-          <AdminLogin
-            onLogin={(adminName, password, securityCode) => adminLoginMutation.mutate({ adminName, password, securityCode })}
-            isLoading={adminLoginMutation.isPending}
-            onBack={() => setCurrentRole('')}
-          />
-          <Footer />
-        </div>
+        <AdminLogin
+          onLogin={(adminName, password, securityCode) => adminLoginMutation.mutate({ adminName, password, securityCode })}
+          isLoading={adminLoginMutation.isPending}
+          onBack={() => setCurrentRole('')}
+        />
       );
     }
 
     return (
-      <div className="flex flex-col min-h-screen">
-        <AdminDashboard
-          adminName={adminSession.staffName}
-          adminPhone={adminSession.staffPhone}
-          onLogout={handleAdminLogout}
-        />
-        <Footer />
-      </div>
+      <AdminDashboard
+        adminName={adminSession.staffName}
+        adminPhone={adminSession.staffPhone}
+        onLogout={handleAdminLogout}
+      />
     );
   }
 

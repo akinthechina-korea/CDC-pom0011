@@ -197,8 +197,9 @@
    - Insert schema만 전송하여 데이터 중복 방지 (id, timestamp 제거)
 12. **푸터 추가** - 모든 페이지 하단에 회사 정보 푸터 표시
    - "2025 ©CHUNIL. Copyright All Rights Reserved www.chunilkor.co.kr"
-   - 웹사이트 링크는 새 탭에서 열림
+   - 웹사이트 링크는 새 탭에서 열림 (rel="noopener noreferrer")
    - flex-col min-h-screen 레이아웃으로 푸터가 항상 페이지 하단에 위치
+   - Footer 컴포넌트를 생성하여 모든 페이지에 추가 완료
 
 ### 보류된 기능
 - **이메일 알림 시스템** - 사용자가 이메일 통합을 취소함. 향후 구현을 원하는 경우 Resend 또는 SendGrid 연동 필요
@@ -206,6 +207,16 @@
 ### 다음 단계
 - 분석 대시보드 (통계 및 차트)
 - 검색 및 필터링 시스템
+
+## 푸터 (Footer)
+- 모든 페이지 하단에 회사 정보 푸터 표시
+- "2025 ©CHUNIL. Copyright All Rights Reserved www.chunilkor.co.kr"
+- 웹사이트 링크는 새 탭에서 열림 (rel="noopener noreferrer")
+- flex-col min-h-screen 레이아웃으로 푸터가 항상 페이지 하단에 위치
+- 모든 페이지에 일관되게 적용:
+  - RoleSelection
+  - 모든 로그인 페이지 (Driver, Field, Office, Admin)
+  - 모든 대시보드 페이지 (Driver, Field, Office, Admin)
 
 ## 개발 노트
 - 한글 폰트: Noto Sans KR 사용

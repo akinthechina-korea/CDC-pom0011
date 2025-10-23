@@ -12,6 +12,7 @@ import { Truck, Plus, ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 import type { Report, Cargo } from "@shared/schema";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -172,7 +173,7 @@ export default function DriverDashboard({
     });
 
   return (
-    <div className="min-h-screen bg-driver/5">
+    <div className="min-h-screen bg-driver/5 flex flex-col">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
@@ -747,6 +748,7 @@ export default function DriverDashboard({
           )}
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   );
 }

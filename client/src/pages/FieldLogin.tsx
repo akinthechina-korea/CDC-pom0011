@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ClipboardCheck, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/Footer";
 
 interface FieldLoginProps {
   onLogin: (staffName: string, password: string, securityCode: string) => void;
@@ -32,8 +33,9 @@ export default function FieldLogin({ onLogin, isLoading = false, onBack }: Field
   };
 
   return (
-    <div className="min-h-screen bg-field/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-field/5 flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 rounded-full bg-field/10 flex items-center justify-center">
@@ -105,7 +107,9 @@ export default function FieldLogin({ onLogin, isLoading = false, onBack }: Field
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
