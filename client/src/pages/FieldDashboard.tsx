@@ -120,7 +120,7 @@ export default function FieldDashboard({
     resetForm();
   };
 
-  // 검토 대기: 기사 제출 시간 기준 최신순 (사무실 반려 제외)
+  // 검토 대기: 기사 제출 시간 기준 최신순 (새 제출만, 사무실 반려는 반려탭에)
   const pendingReviewReports = reports
     .filter(r => r.status === 'driver_submitted' && !r.rejectionReason)
     .sort((a, b) => {
