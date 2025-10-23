@@ -357,7 +357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actor: validatedData.driverName,
         actorRole: 'driver' as const,
         timestamp: new Date().toISOString(),
-        details: '보고서 제출',
+        content: validatedData.driverDamage,
+        signature: validatedData.driverSignature,
       };
 
       const updatedReport = await storage.updateReport(report.id, {
@@ -402,7 +403,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actor: report.driverName,
         actorRole: 'driver' as const,
         timestamp: new Date().toISOString(),
-        details: '보고서 재제출',
+        content: driverDamage,
+        signature: driverSignature,
       };
 
       const currentHistory = report.actionHistory || [];
@@ -456,7 +458,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           actorRole: 'field' as const,
           timestamp: new Date().toISOString(),
           reason: rejectionReason,
-          details: '현장에서 반려',
         };
 
         const updatedReport = await storage.updateReport(req.params.id, {
@@ -482,7 +483,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           actor: validatedData.fieldStaff,
           actorRole: 'field' as const,
           timestamp: new Date().toISOString(),
-          details: '현장에서 승인',
+          content: validatedData.fieldDamage,
+          signature: validatedData.fieldSignature,
         };
 
         const updatedReport = await storage.updateReport(req.params.id, {
@@ -534,7 +536,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actor: validatedData.officeStaff,
         actorRole: 'office' as const,
         timestamp: new Date().toISOString(),
-        details: '사무실에서 최종 승인',
+        content: validatedData.officeDamage,
+        signature: validatedData.officeSignature,
       };
 
       const updatedReport = await storage.updateReport(req.params.id, {
@@ -585,7 +588,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actorRole: 'office' as const,
         timestamp: new Date().toISOString(),
         reason: rejectionReason,
-        details: '사무실에서 반려',
       };
 
       const updatedReport = await storage.updateReport(req.params.id, {
