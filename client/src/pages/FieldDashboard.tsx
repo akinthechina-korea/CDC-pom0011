@@ -44,6 +44,7 @@ export default function FieldDashboard({
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isReviewing, setIsReviewing] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isReviewingRejected, setIsReviewingRejected] = useState(false);
   const { toast } = useToast();
 
   const DEFAULT_FIELD_DAMAGE = "현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
@@ -292,7 +293,10 @@ export default function FieldDashboard({
                   <ReportCard
                     key={report.id}
                     report={report}
-                    onClick={() => setSelectedReport(report)}
+                    onClick={() => {
+                      setSelectedReport(report);
+                      setIsReviewingRejected(true);
+                    }}
                     showAllDetails={true}
                   />
                 ))}
@@ -477,8 +481,150 @@ export default function FieldDashboard({
         </DialogContent>
       </Dialog>
 
+      {/* Review Rejected Report Dialog (사무실 반려 검토) */}
+      <Dialog open={isReviewingRejected} onOpenChange={setIsReviewingRejected}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">사무실 반려 보고서 검토</DialogTitle>
+            <DialogDescription>
+              사무실에서 반려한 보고서입니다. 재제출하거나 기사에게 반려할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedReport && (
+            <div className="space-y-6 py-4">
+              {/* Office Rejection Reason */}
+              <Card className="bg-destructive/10 border-destructive">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-destructive">사무실 반려 사유</CardTitle>
+                  {selectedReport.rejectedAt && (
+                    <CardDescription className="text-xs">
+                      반려: {formatDateTime(selectedReport.rejectedAt)}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-sm bg-background p-3 rounded-md">
+                    {selectedReport.rejectionReason}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Driver Report */}
+              <Card className="bg-chart-3/5">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <CardTitle className="text-base">기사 보고 내용</CardTitle>
+                      <CardDescription className="mt-1">
+                        {selectedReport.driverName} ({selectedReport.vehicleNo})
+                      </CardDescription>
+                    </div>
+                    <div className="text-right text-sm">
+                      <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
+                      <p className="text-muted-foreground font-mono">{selectedReport.blNo}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div>
+                    <p className="text-sm font-medium mb-1">파손 내용:</p>
+                    <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
+                      {selectedReport.driverDamage}
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">서명: {selectedReport.driverSignature}</p>
+                </CardContent>
+              </Card>
+
+              {/* Field Review Form */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">현장 검토 의견</h3>
+
+                <div className="space-y-2">
+                  <Label htmlFor="field-staff-rejected">현장 담당자 *</Label>
+                  <Select
+                    value={formData.fieldStaff}
+                    onValueChange={handleStaffSelect}
+                  >
+                    <SelectTrigger id="field-staff-rejected" data-testid="select-field-staff-rejected">
+                      <SelectValue placeholder="선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fieldStaffList.map((staff) => (
+                        <SelectItem key={staff.id} value={staff.name}>
+                          {staff.name} - {staff.phone}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="field-damage-rejected">현장 확인 내용 *</Label>
+                  <Textarea
+                    id="field-damage-rejected"
+                    placeholder="현장에서 확인한 파손 상태를 기록하세요..."
+                    value={formData.fieldDamage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fieldDamage: e.target.value }))}
+                    className="min-h-32"
+                    data-testid="textarea-field-damage-rejected"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="field-signature-rejected">서명 (이름) *</Label>
+                  <Input
+                    id="field-signature-rejected"
+                    placeholder="이름을 입력하세요"
+                    value={formData.fieldSignature}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fieldSignature: e.target.value }))}
+                    data-testid="input-field-signature-rejected"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleApprove}
+                  disabled={!formData.fieldStaff || !formData.fieldDamage || !formData.fieldSignature}
+                  className="flex-1 bg-chart-4 hover:bg-chart-4/90 text-white"
+                  data-testid="button-resubmit"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  재제출 (사무실)
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsReviewingRejected(false);
+                    setIsRejecting(true);
+                  }}
+                  variant="destructive"
+                  className="flex-1"
+                  data-testid="button-reject-to-driver"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  반려 (기사)
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsReviewingRejected(false);
+                    setSelectedReport(null);
+                    resetForm();
+                  }}
+                  variant="outline"
+                  data-testid="button-cancel-rejected"
+                >
+                  취소
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* View Report Detail Dialog */}
-      <Dialog open={selectedReport !== null && !isReviewing && !isRejecting} onOpenChange={(open) => !open && setSelectedReport(null)}>
+      <Dialog open={selectedReport !== null && !isReviewing && !isRejecting && !isReviewingRejected} onOpenChange={(open) => !open && setSelectedReport(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>보고서 상세</DialogTitle>
