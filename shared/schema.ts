@@ -91,6 +91,7 @@ export const insertReportSchema = createInsertSchema(reports).omit({
   fieldSubmittedAt: true,
   completedAt: true,
   rejectedAt: true,
+  actionHistory: true,
 }).extend({
   reportDate: z.string().min(1, "날짜를 선택하세요"),
   containerNo: z.string().min(1, "컨테이너 번호를 입력하세요"),
