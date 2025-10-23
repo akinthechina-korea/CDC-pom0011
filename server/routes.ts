@@ -351,10 +351,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'driver_submitted',
       });
 
-      // Update with submission timestamp
+      // Update with submission timestamp and action history
+      const historyItem = {
+        actionType: 'submit' as const,
+        actor: validatedData.driverName,
+        actorRole: 'driver' as const,
+        timestamp: new Date().toISOString(),
+        details: '보고서 제출',
+      };
+
       const updatedReport = await storage.updateReport(report.id, {
         driverSubmittedAt: new Date(),
         status: 'driver_submitted',
+        actionHistory: [historyItem],
       });
 
       res.status(201).json(updatedReport);
@@ -387,6 +396,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "반려된 보고서만 재제출할 수 있습니다" });
       }
 
+      // Add to history
+      const historyItem = {
+        actionType: 'resubmit' as const,
+        actor: report.driverName,
+        actorRole: 'driver' as const,
+        timestamp: new Date().toISOString(),
+        details: '보고서 재제출',
+      };
+
+      const currentHistory = report.actionHistory || [];
+
       const updateData: any = {
         driverDamage,
         driverSignature,
@@ -394,6 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         driverSubmittedAt: new Date(),
         rejectionReason: null,
         rejectedAt: null,
+        actionHistory: [...currentHistory, historyItem],
       };
 
       if (damagePhotos !== undefined) {
@@ -421,16 +442,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { action, rejectionReason, ...reviewData } = req.body;
+      const currentHistory = report.actionHistory || [];
 
       if (action === 'reject') {
         if (!rejectionReason) {
           return res.status(400).json({ error: "반려 사유를 입력해주세요" });
         }
 
+        // Add rejection to history
+        const historyItem = {
+          actionType: 'reject' as const,
+          actor: reviewData.fieldStaff || '현장 담당자',
+          actorRole: 'field' as const,
+          timestamp: new Date().toISOString(),
+          reason: rejectionReason,
+          details: '현장에서 반려',
+        };
+
         const updatedReport = await storage.updateReport(req.params.id, {
           status: 'rejected',
           rejectionReason,
           rejectedAt: new Date(),
+          actionHistory: [...currentHistory, historyItem],
         });
 
         return res.json(updatedReport);
@@ -443,6 +476,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           action 
         });
 
+        // Add approval to history
+        const historyItem = {
+          actionType: 'approve' as const,
+          actor: validatedData.fieldStaff,
+          actorRole: 'field' as const,
+          timestamp: new Date().toISOString(),
+          details: '현장에서 승인',
+        };
+
         const updatedReport = await storage.updateReport(req.params.id, {
           fieldStaff: validatedData.fieldStaff,
           fieldPhone: validatedData.fieldPhone,
@@ -450,6 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fieldSignature: validatedData.fieldSignature,
           status: 'field_submitted',
           fieldSubmittedAt: new Date(),
+          actionHistory: [...currentHistory, historyItem],
         });
 
         return res.json(updatedReport);
@@ -484,6 +527,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reportId: req.params.id,
       });
 
+      // Add to history
+      const currentHistory = report.actionHistory || [];
+      const historyItem = {
+        actionType: 'office_approve' as const,
+        actor: validatedData.officeStaff,
+        actorRole: 'office' as const,
+        timestamp: new Date().toISOString(),
+        details: '사무실에서 최종 승인',
+      };
+
       const updatedReport = await storage.updateReport(req.params.id, {
         officeStaff: validatedData.officeStaff,
         officePhone: validatedData.officePhone,
@@ -491,6 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         officeSignature: validatedData.officeSignature,
         status: 'completed',
         completedAt: new Date(),
+        actionHistory: [...currentHistory, historyItem],
       });
 
       res.json(updatedReport);
@@ -517,16 +571,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "현장 승인 상태의 보고서만 반려할 수 있습니다" });
       }
 
-      const { rejectionReason } = req.body;
+      const { rejectionReason, officeStaff } = req.body;
       
       if (!rejectionReason) {
         return res.status(400).json({ error: "반려 사유를 입력해주세요" });
       }
 
+      // Add to history
+      const currentHistory = report.actionHistory || [];
+      const historyItem = {
+        actionType: 'office_reject' as const,
+        actor: officeStaff || '사무실 담당자',
+        actorRole: 'office' as const,
+        timestamp: new Date().toISOString(),
+        reason: rejectionReason,
+        details: '사무실에서 반려',
+      };
+
       const updatedReport = await storage.updateReport(req.params.id, {
         status: 'driver_submitted',
         rejectionReason,
         rejectedAt: new Date(),
+        actionHistory: [...currentHistory, historyItem],
       });
 
       res.json(updatedReport);
