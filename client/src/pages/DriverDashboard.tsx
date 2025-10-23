@@ -207,34 +207,31 @@ export default function DriverDashboard({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        {/* Create New Report Button */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">내 보고서</h2>
-          <Button
-            onClick={() => setIsCreating(true)}
-            className="bg-driver hover:bg-driver/90 text-driver-foreground"
-            data-testid="button-create-report"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            새 보고서 작성
-          </Button>
-        </div>
-
         <Tabs defaultValue="pending-review" className="space-y-6">
-          <TabsList className="grid grid-cols-4 mx-auto" style={{ width: '768px', maxWidth: '100%' }}>
-            <TabsTrigger value="pending-review" data-testid="tab-pending-review">
-              검토대기 ({pendingReviewReports.length})
-            </TabsTrigger>
-            <TabsTrigger value="reviewed" data-testid="tab-reviewed">
-              검토완료/승인대기 ({reviewedReports.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" data-testid="tab-completed">
-              승인완료 ({completedReports.length})
-            </TabsTrigger>
-            <TabsTrigger value="rejected" data-testid="tab-rejected">
-              반려 ({rejectedReports.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-center gap-4 mb-6 flex-wrap">
+            <TabsList className="grid grid-cols-4" style={{ width: '768px', maxWidth: '100%' }}>
+              <TabsTrigger value="pending-review" data-testid="tab-pending-review">
+                검토대기 ({pendingReviewReports.length})
+              </TabsTrigger>
+              <TabsTrigger value="reviewed" data-testid="tab-reviewed">
+                검토완료/승인대기 ({reviewedReports.length})
+              </TabsTrigger>
+              <TabsTrigger value="completed" data-testid="tab-completed">
+                승인완료 ({completedReports.length})
+              </TabsTrigger>
+              <TabsTrigger value="rejected" data-testid="tab-rejected">
+                반려 ({rejectedReports.length})
+              </TabsTrigger>
+            </TabsList>
+            <Button
+              onClick={() => setIsCreating(true)}
+              className="bg-driver hover:bg-driver/90 text-driver-foreground"
+              data-testid="button-create-report"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              새 보고서 작성
+            </Button>
+          </div>
 
           {/* Pending Review Reports */}
           <TabsContent value="pending-review" className="space-y-4">
