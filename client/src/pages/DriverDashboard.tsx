@@ -119,6 +119,8 @@ export default function DriverDashboard({
   const rejectedReports = myReports.filter(r => r.status === 'rejected');
   const otherReports = myReports.filter(r => r.status !== 'rejected');
 
+  console.log('DriverDashboard props:', { driverName, vehicleNo, driverPhone });
+
   return (
     <div className="min-h-screen bg-driver/5">
       {/* Header */}
@@ -129,14 +131,14 @@ export default function DriverDashboard({
               <div className="w-10 h-10 rounded-full bg-driver/10 flex items-center justify-center">
                 <Truck className="w-5 h-5 text-driver" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h1 className="font-semibold text-lg text-foreground" data-testid="text-driver-name">
-                  {driverName}
+                  {driverName || '이름 없음'}
                 </h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="font-medium">{vehicleNo}</span>
+                  <span className="font-medium">{vehicleNo || '차량번호 없음'}</span>
                   <span>•</span>
-                  <span>{driverPhone}</span>
+                  <span>{driverPhone || '연락처 없음'}</span>
                 </div>
               </div>
             </div>
