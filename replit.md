@@ -195,6 +195,10 @@
    - CSV 업로드(/bulk)와 직접 편집(/replace)의 분리된 API 경로
    - 엄격한 검증: 필수 필드 누락 시 행 번호를 포함한 명확한 에러 메시지
    - Insert schema만 전송하여 데이터 중복 방지 (id, timestamp 제거)
+12. **푸터 추가** - 모든 페이지 하단에 회사 정보 푸터 표시
+   - "2025 ©CHUNIL. Copyright All Rights Reserved www.chunilkor.co.kr"
+   - 웹사이트 링크는 새 탭에서 열림
+   - flex-col min-h-screen 레이아웃으로 푸터가 항상 페이지 하단에 위치
 
 ### 보류된 기능
 - **이메일 알림 시스템** - 사용자가 이메일 통합을 취소함. 향후 구현을 원하는 경우 Resend 또는 SendGrid 연동 필요
