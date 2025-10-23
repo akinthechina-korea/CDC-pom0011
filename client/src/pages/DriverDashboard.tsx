@@ -221,7 +221,7 @@ export default function DriverDashboard({
         </div>
 
         <Tabs defaultValue="pending-review" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="pending-review" data-testid="tab-pending-review">
               검토대기 ({pendingReviewReports.length})
             </TabsTrigger>
