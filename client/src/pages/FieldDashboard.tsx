@@ -334,6 +334,10 @@ export default function FieldDashboard({
                   <p className="font-semibold">{selectedReport.driverName}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">기사 연락처</p>
+                  <p className="font-semibold">{selectedReport.driverPhone}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">화물 일자</p>
                   <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
@@ -546,6 +550,10 @@ export default function FieldDashboard({
                   <p className="font-semibold">{selectedReport.driverName}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">기사 연락처</p>
+                  <p className="font-semibold">{selectedReport.driverPhone}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">화물 일자</p>
                   <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
@@ -712,6 +720,10 @@ export default function FieldDashboard({
                 <div>
                   <p className="text-sm text-muted-foreground">운송기사</p>
                   <p className="font-semibold">{selectedReport.driverName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">기사 연락처</p>
+                  <p className="font-semibold">{selectedReport.driverPhone}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">화물 일자</p>
