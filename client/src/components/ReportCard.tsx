@@ -92,7 +92,7 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground">처리 이력:</p>
             <div className="space-y-1.5">
-              {report.actionHistory.map((item, index) => (
+              {[...report.actionHistory].reverse().map((item, index) => (
                 <div 
                   key={index}
                   className="flex items-start gap-2 text-xs p-2 bg-muted/30 rounded"

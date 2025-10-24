@@ -735,7 +735,7 @@ export default function DriverDashboard({
                     <CardTitle className="text-sm">전체 처리 이력</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {selectedReport.actionHistory.map((item, index) => {
+                    {[...selectedReport.actionHistory].reverse().map((item, index) => {
                       const isRejection = item.actionType === 'reject' || item.actionType === 'office_reject';
                       const isSubmission = item.actionType === 'submit' || item.actionType === 'resubmit';
                       const isApproval = item.actionType === 'approve' || item.actionType === 'office_approve';
