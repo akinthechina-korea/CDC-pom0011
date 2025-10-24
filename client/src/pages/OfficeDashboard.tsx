@@ -220,7 +220,13 @@ export default function OfficeDashboard({
       </main>
 
       {/* Reject Report Dialog */}
-      <Dialog open={isRejecting} onOpenChange={setIsRejecting}>
+      <Dialog open={isRejecting} onOpenChange={(open) => {
+        setIsRejecting(open);
+        if (!open) {
+          setSelectedReport(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>보고서 반려</DialogTitle>
@@ -268,7 +274,13 @@ export default function OfficeDashboard({
       </Dialog>
 
       {/* Approve Report Dialog */}
-      <Dialog open={isApproving} onOpenChange={setIsApproving}>
+      <Dialog open={isApproving} onOpenChange={(open) => {
+        setIsApproving(open);
+        if (!open) {
+          setSelectedReport(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>최종 승인</DialogTitle>

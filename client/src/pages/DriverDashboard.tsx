@@ -354,7 +354,12 @@ export default function DriverDashboard({
       </main>
 
       {/* Create Report Dialog */}
-      <Dialog open={isCreating} onOpenChange={setIsCreating}>
+      <Dialog open={isCreating} onOpenChange={(open) => {
+        setIsCreating(open);
+        if (!open) {
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>새 보고서 작성</DialogTitle>
@@ -458,7 +463,13 @@ export default function DriverDashboard({
       </Dialog>
 
       {/* Edit Report Dialog */}
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+      <Dialog open={isEditing} onOpenChange={(open) => {
+        setIsEditing(open);
+        if (!open) {
+          setSelectedReport(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>보고서 수정 및 재제출</DialogTitle>

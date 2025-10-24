@@ -296,7 +296,13 @@ export default function FieldDashboard({
       </main>
 
       {/* Review Report Dialog */}
-      <Dialog open={isReviewing} onOpenChange={setIsReviewing}>
+      <Dialog open={isReviewing} onOpenChange={(open) => {
+        setIsReviewing(open);
+        if (!open) {
+          setSelectedReport(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>보고서 검토</DialogTitle>
@@ -412,7 +418,13 @@ export default function FieldDashboard({
       </Dialog>
 
       {/* Reject Dialog */}
-      <Dialog open={isRejecting} onOpenChange={setIsRejecting}>
+      <Dialog open={isRejecting} onOpenChange={(open) => {
+        setIsRejecting(open);
+        if (!open) {
+          setSelectedReport(null);
+          resetForm();
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>보고서 반려</DialogTitle>
@@ -460,7 +472,13 @@ export default function FieldDashboard({
       </Dialog>
 
       {/* Review Rejected Report Dialog (사무실 반려 검토) */}
-      <Dialog open={isReviewingRejected} onOpenChange={setIsReviewingRejected}>
+      <Dialog open={isReviewingRejected} onOpenChange={(open) => {
+        setIsReviewingRejected(open);
+        if (!open) {
+          setSelectedReport(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-destructive">사무실 반려 보고서 검토</DialogTitle>
