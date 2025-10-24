@@ -51,7 +51,7 @@ export default function OfficeDashboard({
   const [viewerOpen, setViewerOpen] = useState(false);
   const { toast } = useToast();
 
-  const DEFAULT_OFFICE_DAMAGE = "현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+  const DEFAULT_OFFICE_DAMAGE = "당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.상기와 같이 확인 합니다";
 
   const formatDateTime = (date: Date | string | null) => {
     if (!date) return "";

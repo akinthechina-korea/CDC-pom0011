@@ -52,7 +52,7 @@ export default function FieldDashboard({
   const [viewerOpen, setViewerOpen] = useState(false);
   const { toast } = useToast();
 
-  const DEFAULT_FIELD_DAMAGE = "현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
+  const DEFAULT_FIELD_DAMAGE = "기사님 발견한 상황에대해 협조 확인을 해드렸고, 이상의 작업간에 발생한 파손은 아니고 기존에 파손된 것으로 보입니다. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을 컨테이너 운송 기사님과 확인하였습니다.";
 
   const formatDateTime = (date: Date | string | null) => {
     if (!date) return "";
