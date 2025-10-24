@@ -18,7 +18,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import PDFDocument from "pdfkit";
+import puppeteer from "puppeteer";
 
 // Configure multer for file upload
 const uploadDir = path.join(process.cwd(), "attached_assets", "damage_photos");
@@ -766,8 +766,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download report as PDF file
+  // Download report as PDF file using Puppeteer + HTML template
   app.get("/api/reports/:id/download", async (req, res) => {
+    let browser;
     try {
       const report = await storage.getReport(req.params.id);
       if (!report) {
@@ -789,261 +790,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hour12: false
       });
 
-      // Create PDF document with margins for header/footer
-      const doc = new PDFDocument({
-        size: 'A4',
-        margins: {
-          top: 140,  // Space for header
-          bottom: 60, // Space for footer
-          left: 50,
-          right: 50
-        },
-        bufferPages: true  // Buffer all pages to add header/footer at the end
-      });
-
-      // Register CJK fonts (supports Korean + Chinese characters)
-      const fontPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansCJK-Regular.otf');
-      const fontBoldPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansCJK-Bold.otf');
-      doc.registerFont('NotoSansCJK', fontPath);
-      doc.registerFont('NotoSansCJK-Bold', fontBoldPath);
-
-      // Set response headers
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
-
-      // Pipe PDF to response
-      doc.pipe(res);
-
-      // Document Title
-      doc.fontSize(16)
-         .font('NotoSansCJK-Bold')
-         .text('컨테이너 DAMAGE 확인서', { align: 'center' });
-      
-      doc.moveDown(1.5);
-
-      // Document Info
-      doc.fontSize(11)
-         .font('NotoSansCJK-Bold')
-         .text('발 신: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.officeStaff || '');
-      
-      doc.moveDown(0.4);
-      
-      doc.font('NotoSansCJK-Bold')
-         .text('제 목: ', { continued: true })
-         .font('NotoSansCJK')
-         .text('컨테이너 DAMAGE의 건');
-      
-      doc.moveDown(1.2);
-
-      // Container Information
-      doc.fontSize(11)
-         .font('NotoSansCJK-Bold')
-         .text('Container No.: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.containerNo);
-      
-      doc.moveDown(0.3);
-      
-      doc.font('NotoSansCJK-Bold')
-         .text('B/L No.: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.blNo);
-      
-      doc.moveDown(0.3);
-      
-      doc.font('NotoSansCJK-Bold')
-         .text('차량 번호: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.vehicleNo);
-      
-      doc.moveDown(0.3);
-      
-      doc.font('NotoSansCJK-Bold')
-         .text('운송 기사: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.driverName);
-      
-      doc.moveDown(0.3);
-      
-      doc.font('NotoSansCJK-Bold')
-         .text('운송기사 연락처: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.driverPhone || '');
-      
-      doc.moveDown(0.3);
-      
-      doc.font('NotoSansCJK-Bold')
-         .text('화물 일자: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(report.reportDate || '');
-      
-      doc.moveDown(1.8);
-
-      // Driver Section
-      doc.fontSize(11)
-         .font('NotoSansCJK-Bold')
-         .text('[운송기사]', { continued: false });
-      doc.moveDown(0.5);
-      doc.font('NotoSansCJK')
-         .text(report.driverDamage || '', { width: 475 });
-      
-      doc.moveDown(1.5);
-
-      // Field Staff Section
-      doc.font('NotoSansCJK-Bold')
-         .text('[현장 책임자]', { continued: false });
-      doc.moveDown(0.5);
-      doc.font('NotoSansCJK')
-         .text(report.fieldDamage || '', { width: 475 });
-      
-      doc.moveDown(1.5);
-
-      // Office Staff Section
-      doc.font('NotoSansCJK-Bold')
-         .text('[사무실 책임자]', { continued: false });
-      doc.moveDown(0.5);
-      doc.font('NotoSansCJK')
-         .text(report.officeDamage || '', { width: 475 });
-      
-      doc.moveDown(2.5);
-
       // Get last signatures from actionHistory
       const actionHistory = report.actionHistory || [];
       const lastDriverSig = actionHistory.filter(a => a.actorRole === 'driver' && a.signature).pop()?.signature;
       const lastFieldSig = actionHistory.filter(a => a.actorRole === 'field' && a.signature).pop()?.signature;
       const lastOfficeSig = actionHistory.filter(a => a.actorRole === 'office' && a.signature).pop()?.signature;
 
-      // Signature Section - 2x2 Grid Layout
-      const leftColX = 50;
-      const rightColX = 300;
-      const sigStartY = doc.y;
-
-      // Row 1 Left - Driver Signature
-      doc.fontSize(11)
-         .font('NotoSansCJK-Bold')
-         .text('운송기사: ', leftColX, sigStartY, { continued: true })
-         .font('NotoSansCJK')
-         .text(report.driverName);
+      // Prepare signature HTML
+      const driverSignatureHtml = lastDriverSig 
+        ? `<img src="${lastDriverSig}" class="signature-image" alt="운송기사 서명" />`
+        : '<div class="signature-placeholder">서명 이미지</div>';
       
-      let leftColY = sigStartY + doc.currentLineHeight() + 5;
-      if (lastDriverSig) {
-        try {
-          const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-          doc.image(driverSigBuffer, leftColX, leftColY, { width: 120, height: 30 });
-          leftColY += 35;
-        } catch (error) {
-          console.error('Failed to embed driver signature image:', error);
-          doc.font('NotoSansCJK')
-             .text('서명 이미지', leftColX, leftColY);
-          leftColY += 20;
-        }
-      } else {
-        doc.font('NotoSansCJK')
-           .text('서명 이미지', leftColX, leftColY);
-        leftColY += 20;
-      }
-
-      // Row 1 Right - Field Signature
-      doc.font('NotoSansCJK-Bold')
-         .text('현장 책임자: ', rightColX, sigStartY, { continued: true })
-         .font('NotoSansCJK')
-         .text(report.fieldStaff || '');
+      const fieldSignatureHtml = lastFieldSig
+        ? `<img src="${lastFieldSig}" class="signature-image" alt="현장 책임자 서명" />`
+        : '<div class="signature-placeholder">서명 이미지</div>';
       
-      let rightColY = sigStartY + doc.currentLineHeight() + 5;
-      if (lastFieldSig) {
-        try {
-          const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-          doc.image(fieldSigBuffer, rightColX, rightColY, { width: 120, height: 30 });
-          rightColY += 35;
-        } catch (error) {
-          console.error('Failed to embed field signature image:', error);
-          doc.font('NotoSansCJK')
-             .text('서명 이미지', rightColX, rightColY);
-          rightColY += 20;
-        }
-      } else {
-        doc.font('NotoSansCJK')
-           .text('서명 이미지', rightColX, rightColY);
-        rightColY += 20;
-      }
+      const officeSignatureHtml = lastOfficeSig
+        ? `<img src="${lastOfficeSig}" class="signature-image" alt="사무실 책임자 서명" />`
+        : '<div class="signature-placeholder">서명 이미지</div>';
 
-      leftColY += 15;
-      rightColY += 15;
+      // Read HTML template
+      const templatePath = path.join(process.cwd(), 'server', 'pdf-template.html');
+      let htmlContent = fs.readFileSync(templatePath, 'utf-8');
 
-      // Row 2 Left - Office Signature
-      doc.font('NotoSansCJK-Bold')
-         .text('사무실 책임자: ', leftColX, leftColY, { continued: true })
-         .font('NotoSansCJK')
-         .text(report.officeStaff || '');
+      // Replace placeholders
+      htmlContent = htmlContent
+        .replace(/{{containerNo}}/g, report.containerNo || '')
+        .replace(/{{blNo}}/g, report.blNo || '')
+        .replace(/{{vehicleNo}}/g, report.vehicleNo || '')
+        .replace(/{{driverName}}/g, report.driverName || '')
+        .replace(/{{driverPhone}}/g, report.driverPhone || '')
+        .replace(/{{reportDate}}/g, report.reportDate || '')
+        .replace(/{{officeStaff}}/g, report.officeStaff || '')
+        .replace(/{{fieldStaff}}/g, report.fieldStaff || '')
+        .replace(/{{driverDamage}}/g, report.driverDamage || '')
+        .replace(/{{fieldDamage}}/g, report.fieldDamage || '')
+        .replace(/{{officeDamage}}/g, report.officeDamage || '')
+        .replace(/{{driverSignatureHtml}}/g, driverSignatureHtml)
+        .replace(/{{fieldSignatureHtml}}/g, fieldSignatureHtml)
+        .replace(/{{officeSignatureHtml}}/g, officeSignatureHtml)
+        .replace(/{{dateStr}}/g, dateStr);
+
+      // Launch Puppeteer
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
       
-      leftColY += doc.currentLineHeight() + 5;
-      if (lastOfficeSig) {
-        try {
-          const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-          doc.image(officeSigBuffer, leftColX, leftColY, { width: 120, height: 30 });
-        } catch (error) {
-          console.error('Failed to embed office signature image:', error);
-          doc.font('NotoSansCJK')
-             .text('서명 이미지', leftColX, leftColY);
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+      // Generate PDF
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '0px',
+          right: '0px',
+          bottom: '0px',
+          left: '0px'
         }
-      } else {
-        doc.font('NotoSansCJK')
-           .text('서명 이미지', leftColX, leftColY);
-      }
+      });
 
-      // Row 2 Right - Date
-      doc.font('NotoSansCJK-Bold')
-         .text('출력일자:', rightColX, rightColY);
-      rightColY += doc.currentLineHeight() + 5;
-      doc.font('NotoSansCJK')
-         .text(dateStr, rightColX, rightColY);
+      await browser.close();
 
-      // Add header and footer to all pages
-      const range = doc.bufferedPageRange();
-      for (let i = 0; i < range.count; i++) {
-        doc.switchToPage(i);
-        
-        const pageHeight = doc.page.height;
-        const pageWidth = doc.page.width;
-        
-        // Draw header at top
-        doc.fontSize(20)
-           .font('NotoSansCJK-Bold')
-           .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        doc.fontSize(11)
-           .font('NotoSansCJK')
-           .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        doc.fontSize(10)
-           .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        // Header divider line
-        doc.moveTo(50, 128)
-           .lineTo(pageWidth - 50, 128)
-           .stroke();
-        
-        // Draw footer at bottom
-        const footerY = pageHeight - 55;
-        doc.moveTo(50, footerY)
-           .lineTo(pageWidth - 50, footerY)
-           .stroke();
-        
-        // Footer text
-        doc.fontSize(8)
-           .font('NotoSansCJK')
-           .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
-                 50, footerY + 10, { align: 'center', width: pageWidth - 100, lineBreak: false });
-      }
+      // Set response headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
+      res.send(pdfBuffer);
 
-      // Finalize PDF
-      doc.end();
     } catch (error) {
       console.error('PDF generation error:', error);
+      if (browser) {
+        await browser.close();
+      }
       res.status(500).json({ error: "파일 다운로드 실패" });
     }
   });
