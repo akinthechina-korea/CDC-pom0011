@@ -596,6 +596,14 @@ export default function DriverDashboard({
                   <p className="text-sm text-muted-foreground">운송기사</p>
                   <p className="font-semibold">{selectedReport.driverName}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">기사 연락처</p>
+                  <p className="font-semibold">{selectedReport.driverPhone}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="font-semibold">{selectedReport.reportDate}</p>
+                </div>
               </div>
 
               <Card className="bg-chart-3/5">
