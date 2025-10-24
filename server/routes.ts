@@ -929,6 +929,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .font('NotoSansCJK')
          .text(report.driverName);
       
+      doc.moveDown(0.3);
+      
+      doc.font('NotoSansCJK-Bold')
+         .text('운송기사 연락처: ', { continued: true })
+         .font('NotoSansCJK')
+         .text(report.driverPhone || '');
+      
+      doc.moveDown(0.3);
+      
+      doc.font('NotoSansCJK-Bold')
+         .text('화물 일자: ', { continued: true })
+         .font('NotoSansCJK')
+         .text(report.reportDate || '');
+      
       doc.moveDown(1.8);
 
       // Content Section Header
