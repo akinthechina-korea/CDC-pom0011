@@ -47,12 +47,15 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
     >
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-0.5">
             <p className="font-mono font-semibold text-base" data-testid={`text-container-${report.id}`}>
               {report.containerNo}
             </p>
             <p className="text-sm text-muted-foreground font-mono" data-testid={`text-bl-${report.id}`}>
               {report.blNo}
+            </p>
+            <p className="text-xs text-muted-foreground" data-testid={`text-vehicle-${report.id}`}>
+              {report.vehicleNo} · {report.driverName} · {report.driverPhone}
             </p>
             <p className="text-xs text-muted-foreground" data-testid={`text-date-${report.id}`}>
               화물 일자: {report.reportDate}
