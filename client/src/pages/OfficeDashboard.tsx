@@ -134,17 +134,17 @@ export default function OfficeDashboard({
       <header className="bg-card border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
               <div className="w-10 h-10 rounded-full bg-office/10 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-office" />
               </div>
-              <div>
-                <h1 className="font-semibold text-lg" data-testid="text-office-title">
-                  사무실 책임자
+              <div className="flex-1 min-w-0">
+                <h1 className="font-semibold text-lg text-foreground" data-testid="text-office-name">
+                  {officeName}
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {officeName} ({officePhone})
-                </p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{officePhone}</span>
+                </div>
               </div>
             </div>
             <Button
