@@ -12,6 +12,7 @@ import { Truck, Plus, ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import SignatureCanvas from "@/components/SignatureCanvas";
+import { ImageViewer } from "@/components/ImageViewer";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, Cargo } from "@shared/schema";
@@ -55,6 +56,8 @@ export default function DriverDashboard({
   const [isCreating, setIsCreating] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const { toast } = useToast();
 
   const DEFAULT_DRIVER_DAMAGE = "기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
@@ -490,14 +493,26 @@ export default function DriverDashboard({
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>컨테이너 번호</Label>
-                  <Input value={formData.containerNo} readOnly className="bg-muted" />
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-md">
+                <div>
+                  <p className="text-sm text-muted-foreground">Container No.</p>
+                  <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label>B/L 번호</Label>
-                  <Input value={formData.blNo} readOnly className="bg-muted" />
+                <div>
+                  <p className="text-sm text-muted-foreground">B/L No.</p>
+                  <p className="font-mono font-semibold">{selectedReport.blNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">차량번호</p>
+                  <p className="font-semibold">{selectedReport.vehicleNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">운송기사</p>
+                  <p className="font-semibold">{selectedReport.driverName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
               </div>
 
@@ -594,6 +609,30 @@ export default function DriverDashboard({
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
+                  {selectedReport.damagePhotos && selectedReport.damagePhotos.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-2">파손 사진:</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {selectedReport.damagePhotos.map((photo, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setViewerImages(selectedReport.damagePhotos || []);
+                              setViewerOpen(true);
+                            }}
+                            className="relative aspect-square rounded-md overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
+                            data-testid={`photo-thumbnail-${index}`}
+                          >
+                            <img
+                              src={photo}
+                              alt={`파손 사진 ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -779,6 +818,14 @@ export default function DriverDashboard({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Image Viewer */}
+      <ImageViewer
+        images={viewerImages}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+      />
+
       <Footer />
     </div>
   );

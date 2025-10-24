@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, ArrowLeft, CheckCircle, Download, XCircle, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import SignatureCanvas from "@/components/SignatureCanvas";
+import { ImageViewer } from "@/components/ImageViewer";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, OfficeStaff } from "@shared/schema";
@@ -46,6 +47,8 @@ export default function OfficeDashboard({
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const { toast } = useToast();
 
   const DEFAULT_OFFICE_DAMAGE = "현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.";
@@ -326,6 +329,30 @@ export default function OfficeDashboard({
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
+                  {selectedReport.damagePhotos && selectedReport.damagePhotos.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-2">파손 사진:</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {selectedReport.damagePhotos.map((photo, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setViewerImages(selectedReport.damagePhotos || []);
+                              setViewerOpen(true);
+                            }}
+                            className="relative aspect-square rounded-md overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
+                            data-testid={`photo-thumbnail-${index}`}
+                          >
+                            <img
+                              src={photo}
+                              alt={`파손 사진 ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -479,6 +506,30 @@ export default function OfficeDashboard({
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
+                  {selectedReport.damagePhotos && selectedReport.damagePhotos.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-2">파손 사진:</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {selectedReport.damagePhotos.map((photo, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setViewerImages(selectedReport.damagePhotos || []);
+                              setViewerOpen(true);
+                            }}
+                            className="relative aspect-square rounded-md overflow-hidden border-2 border-transparent hover:border-primary transition-colors"
+                            data-testid={`photo-thumbnail-${index}`}
+                          >
+                            <img
+                              src={photo}
+                              alt={`파손 사진 ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -646,6 +697,14 @@ export default function OfficeDashboard({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Image Viewer */}
+      <ImageViewer
+        images={viewerImages}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+      />
+
       <Footer />
     </div>
   );
