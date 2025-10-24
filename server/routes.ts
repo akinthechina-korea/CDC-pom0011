@@ -881,52 +881,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       doc.moveDown(1.8);
 
-      // Content Section Header
-      doc.fontSize(13)
-         .font('NotoSansCJK-Bold')
-         .text('내 용');
-      
-      doc.moveDown(1);
-
+      // Driver Section
       doc.fontSize(11)
          .font('NotoSansCJK-Bold')
-         .text('파손 유형:');
-      
-      doc.moveDown(1);
-
-      // Driver Section
-      doc.font('NotoSansCJK-Bold')
          .text('[운송기사]', { continued: false });
       doc.moveDown(0.5);
       doc.font('NotoSansCJK')
-         .text(report.driverDamage || '', { indent: 20, width: 475 });
+         .text(report.driverDamage || '', { width: 475 });
       
-      doc.moveDown(1);
+      doc.moveDown(1.5);
 
       // Field Staff Section
       doc.font('NotoSansCJK-Bold')
          .text('[현장 책임자]', { continued: false });
       doc.moveDown(0.5);
       doc.font('NotoSansCJK')
-         .text(report.fieldDamage || '', { indent: 20, width: 475 });
+         .text(report.fieldDamage || '', { width: 475 });
       
-      doc.moveDown(1);
+      doc.moveDown(1.5);
 
       // Office Staff Section
       doc.font('NotoSansCJK-Bold')
          .text('[사무실 책임자]', { continued: false });
       doc.moveDown(0.5);
       doc.font('NotoSansCJK')
-         .text(report.officeDamage || '', { indent: 20, width: 475 });
+         .text(report.officeDamage || '', { width: 475 });
       
-      doc.moveDown(1.8);
-
-      // Signature Section
-      doc.fontSize(13)
-         .font('NotoSansCJK-Bold')
-         .text('서 명');
-      
-      doc.moveDown(1);
+      doc.moveDown(2.5);
 
       // Get last signatures from actionHistory
       const actionHistory = report.actionHistory || [];
@@ -934,88 +915,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lastFieldSig = actionHistory.filter(a => a.actorRole === 'field' && a.signature).pop()?.signature;
       const lastOfficeSig = actionHistory.filter(a => a.actorRole === 'office' && a.signature).pop()?.signature;
 
-      // Driver signature
+      // Signature Section - 2x2 Grid Layout
+      const leftColX = 50;
+      const rightColX = 300;
+      const sigStartY = doc.y;
+
+      // Row 1 Left - Driver Signature
       doc.fontSize(11)
          .font('NotoSansCJK-Bold')
-         .text('운송기사: ', { continued: true })
+         .text('운송기사: ', leftColX, sigStartY, { continued: true })
          .font('NotoSansCJK')
          .text(report.driverName);
-      doc.moveDown(0.5);
+      
+      let leftColY = sigStartY + doc.currentLineHeight() + 5;
       if (lastDriverSig) {
         try {
           const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-          doc.image(driverSigBuffer, 70, doc.y, { width: 150, height: 40 });
-          doc.moveDown(3);
+          doc.image(driverSigBuffer, leftColX, leftColY, { width: 120, height: 30 });
+          leftColY += 35;
         } catch (error) {
           console.error('Failed to embed driver signature image:', error);
           doc.font('NotoSansCJK')
-             .text('[서명 이미지]', { indent: 20 });
-          doc.moveDown(0.5);
+             .text('서명 이미지', leftColX, leftColY);
+          leftColY += 20;
         }
-      } else if (report.driverSignature) {
+      } else {
         doc.font('NotoSansCJK')
-           .text('[서명 완료]', { indent: 20 });
-        doc.moveDown(0.5);
+           .text('서명 이미지', leftColX, leftColY);
+        leftColY += 20;
       }
-      
-      doc.moveDown(1);
 
-      // Field signature
+      // Row 1 Right - Field Signature
       doc.font('NotoSansCJK-Bold')
-         .text('현장책임자: ', { continued: true })
+         .text('현장 책임자: ', rightColX, sigStartY, { continued: true })
          .font('NotoSansCJK')
          .text(report.fieldStaff || '');
-      doc.moveDown(0.5);
+      
+      let rightColY = sigStartY + doc.currentLineHeight() + 5;
       if (lastFieldSig) {
         try {
           const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-          doc.image(fieldSigBuffer, 70, doc.y, { width: 150, height: 40 });
-          doc.moveDown(3);
+          doc.image(fieldSigBuffer, rightColX, rightColY, { width: 120, height: 30 });
+          rightColY += 35;
         } catch (error) {
           console.error('Failed to embed field signature image:', error);
           doc.font('NotoSansCJK')
-             .text('[서명 이미지]', { indent: 20 });
-          doc.moveDown(0.5);
+             .text('서명 이미지', rightColX, rightColY);
+          rightColY += 20;
         }
-      } else if (report.fieldSignature) {
+      } else {
         doc.font('NotoSansCJK')
-           .text('[서명 완료]', { indent: 20 });
-        doc.moveDown(0.5);
+           .text('서명 이미지', rightColX, rightColY);
+        rightColY += 20;
       }
-      
-      doc.moveDown(1);
 
-      // Office signature
+      leftColY += 15;
+      rightColY += 15;
+
+      // Row 2 Left - Office Signature
       doc.font('NotoSansCJK-Bold')
-         .text('사무실 책임자: ', { continued: true })
+         .text('사무실 책임자: ', leftColX, leftColY, { continued: true })
          .font('NotoSansCJK')
          .text(report.officeStaff || '');
-      doc.moveDown(0.5);
+      
+      leftColY += doc.currentLineHeight() + 5;
       if (lastOfficeSig) {
         try {
           const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-          doc.image(officeSigBuffer, 70, doc.y, { width: 150, height: 40 });
-          doc.moveDown(3);
+          doc.image(officeSigBuffer, leftColX, leftColY, { width: 120, height: 30 });
         } catch (error) {
           console.error('Failed to embed office signature image:', error);
           doc.font('NotoSansCJK')
-             .text('[서명 이미지]', { indent: 20 });
-          doc.moveDown(0.5);
+             .text('서명 이미지', leftColX, leftColY);
         }
-      } else if (report.officeSignature) {
+      } else {
         doc.font('NotoSansCJK')
-           .text('[서명 완료]', { indent: 20 });
-        doc.moveDown(0.5);
+           .text('서명 이미지', leftColX, leftColY);
       }
-      
-      doc.moveDown(1.8);
 
-      // Date
-      doc.fontSize(11)
-         .font('NotoSansCJK-Bold')
-         .text('출력일시: ', { continued: true })
-         .font('NotoSansCJK')
-         .text(dateStr);
+      // Row 2 Right - Date
+      doc.font('NotoSansCJK-Bold')
+         .text('출력일자:', rightColX, rightColY);
+      rightColY += doc.currentLineHeight() + 5;
+      doc.font('NotoSansCJK')
+         .text(dateStr, rightColX, rightColY);
 
       // Add header and footer to all pages
       const range = doc.bufferedPageRange();
