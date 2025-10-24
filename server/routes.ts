@@ -831,39 +831,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .replace(/{{officeSignatureHtml}}/g, officeSignatureHtml)
         .replace(/{{dateStr}}/g, dateStr);
 
-      // Launch Puppeteer
-      browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      // Launch Puppeteer and generate PDF with proper cleanup
+      try {
+        browser = await puppeteer.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        
+        const page = await browser.newPage();
+        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
 
-      // Generate PDF
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '0px',
-          right: '0px',
-          bottom: '0px',
-          left: '0px'
+        // Generate PDF
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '0px',
+            right: '0px',
+            bottom: '0px',
+            left: '0px'
+          }
+        });
+
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
+        res.send(pdfBuffer);
+
+      } finally {
+        // Always close browser to prevent memory leaks
+        if (browser) {
+          await browser.close();
         }
-      });
-
-      await browser.close();
-
-      // Set response headers
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
-      res.send(pdfBuffer);
+      }
 
     } catch (error) {
       console.error('PDF generation error:', error);
-      if (browser) {
-        await browser.close();
-      }
       res.status(500).json({ error: "파일 다운로드 실패" });
     }
   });
