@@ -365,7 +365,7 @@ export default function DriverDashboard({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="reportDate">날짜 *</Label>
+              <Label htmlFor="reportDate">화물 일자 *</Label>
               <Input
                 id="reportDate"
                 type="date"

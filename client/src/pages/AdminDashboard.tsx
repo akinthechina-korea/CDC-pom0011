@@ -373,7 +373,7 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
                 <>
                   <TableHead>컨테이너 번호</TableHead>
                   <TableHead>B/L 번호</TableHead>
-                  <TableHead>년월일</TableHead>
+                  <TableHead>화물 일자</TableHead>
                   <TableHead className="w-20">삭제</TableHead>
                 </>
               )}
@@ -509,7 +509,7 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
               <>
                 <TableHead>컨테이너 번호</TableHead>
                 <TableHead>B/L 번호</TableHead>
-                <TableHead>년월일</TableHead>
+                <TableHead>화물 일자</TableHead>
               </>
             )}
             {type === 'vehicles' && (
