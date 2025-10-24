@@ -767,9 +767,14 @@ export default function FieldDashboard({
                           )}
                           
                           {item.signature && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                              서명: {item.signature}
-                            </p>
+                            <div className="mt-2">
+                              <p className="text-xs text-muted-foreground mb-1">서명:</p>
+                              <img 
+                                src={item.signature} 
+                                alt="서명" 
+                                className="h-16 max-w-[200px] border rounded bg-white p-1"
+                              />
+                            </div>
                           )}
                           
                           {item.reason && (
