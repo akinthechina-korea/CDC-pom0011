@@ -313,29 +313,41 @@ export default function FieldDashboard({
 
           {selectedReport && (
             <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-md">
+                <div>
+                  <p className="text-sm text-muted-foreground">Container No.</p>
+                  <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">B/L No.</p>
+                  <p className="font-mono font-semibold">{selectedReport.blNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">차량번호</p>
+                  <p className="font-semibold">{selectedReport.vehicleNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">운송기사</p>
+                  <p className="font-semibold">{selectedReport.driverName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="font-semibold">{selectedReport.reportDate}</p>
+                </div>
+              </div>
+
               {/* Driver Report */}
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <CardTitle className="text-base">기사 보고 내용</CardTitle>
-                      <CardDescription className="mt-1">
-                        {selectedReport.driverName} ({selectedReport.vehicleNo})
-                      </CardDescription>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
-                      <p className="text-muted-foreground font-mono">{selectedReport.blNo}</p>
-                    </div>
-                  </div>
+                  <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  {selectedReport.driverSubmittedAt && (
+                    <CardDescription className="text-xs">
+                      제출: {formatDateTime(selectedReport.driverSubmittedAt)}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <div>
-                    <p className="text-sm font-medium mb-1">파손 내용:</p>
-                    <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
-                      {selectedReport.driverDamage}
-                    </p>
-                  </div>
+                  <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -489,10 +501,33 @@ export default function FieldDashboard({
 
           {selectedReport && (
             <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-md">
+                <div>
+                  <p className="text-sm text-muted-foreground">Container No.</p>
+                  <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">B/L No.</p>
+                  <p className="font-mono font-semibold">{selectedReport.blNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">차량번호</p>
+                  <p className="font-semibold">{selectedReport.vehicleNo}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">운송기사</p>
+                  <p className="font-semibold">{selectedReport.driverName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="font-semibold">{selectedReport.reportDate}</p>
+                </div>
+              </div>
+
               {/* Office Rejection Reason */}
               <Card className="bg-destructive/10 border-destructive">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base text-destructive">사무실 반려 사유</CardTitle>
+                  <CardTitle className="text-sm text-destructive">사무실 반려 사유</CardTitle>
                   {selectedReport.rejectedAt && (
                     <CardDescription className="text-xs">
                       반려: {formatDateTime(selectedReport.rejectedAt)}
@@ -500,35 +535,22 @@ export default function FieldDashboard({
                   )}
                 </CardHeader>
                 <CardContent>
-                  <p className="whitespace-pre-wrap text-sm bg-background p-3 rounded-md">
-                    {selectedReport.rejectionReason}
-                  </p>
+                  <p className="whitespace-pre-wrap text-sm">{selectedReport.rejectionReason}</p>
                 </CardContent>
               </Card>
 
               {/* Driver Report */}
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <CardTitle className="text-base">기사 보고 내용</CardTitle>
-                      <CardDescription className="mt-1">
-                        {selectedReport.driverName} ({selectedReport.vehicleNo})
-                      </CardDescription>
-                    </div>
-                    <div className="text-right text-sm">
-                      <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
-                      <p className="text-muted-foreground font-mono">{selectedReport.blNo}</p>
-                    </div>
-                  </div>
+                  <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  {selectedReport.driverSubmittedAt && (
+                    <CardDescription className="text-xs">
+                      제출: {formatDateTime(selectedReport.driverSubmittedAt)}
+                    </CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <div>
-                    <p className="text-sm font-medium mb-1">파손 내용:</p>
-                    <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
-                      {selectedReport.driverDamage}
-                    </p>
-                  </div>
+                  <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -639,6 +661,10 @@ export default function FieldDashboard({
                 <div>
                   <p className="text-sm text-muted-foreground">운송기사</p>
                   <p className="font-semibold">{selectedReport.driverName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
               </div>
 
