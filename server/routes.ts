@@ -793,8 +793,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const doc = new PDFDocument({
         size: 'A4',
         margins: {
-          top: 120,  // Space for header
-          bottom: 80, // Space for footer
+          top: 130,  // Space for header
+          bottom: 70, // Space for footer
           left: 50,
           right: 50
         }
@@ -812,15 +812,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Pipe PDF to response
       doc.pipe(res);
-
-      // Helper function to add divider line
-      const addDivider = () => {
-        const y = doc.y;
-        doc.moveTo(50, y)
-           .lineTo(545, y)
-           .stroke();
-        doc.moveDown(0.8);
-      };
 
       // Helper function to draw header on current page
       const drawHeader = () => {
@@ -842,9 +833,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: 495, lineBreak: false });
         doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: 495, lineBreak: false });
         
-        // Header divider line
-        doc.moveTo(50, 118)
-           .lineTo(545, 118)
+        // Header divider line with proper spacing
+        doc.moveTo(50, 124)
+           .lineTo(545, 124)
            .stroke();
         
         // Restore position
@@ -856,20 +847,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const savedY = doc.y;
         const pageHeight = doc.page.height;
         
-        // Footer divider line
-        doc.moveTo(50, pageHeight - 60)
-           .lineTo(545, pageHeight - 60)
+        // Footer divider line with proper spacing from text
+        doc.moveTo(50, pageHeight - 55)
+           .lineTo(545, pageHeight - 55)
            .stroke();
         
-        // Footer text
+        // Footer text with proper spacing from line
         doc.fontSize(9)
            .font('NotoSansCJK')
            .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
-                 50, pageHeight - 48, { align: 'center', width: 495, lineBreak: false });
+                 50, pageHeight - 40, { align: 'center', width: 495, lineBreak: false });
         
         // Restore position
         doc.y = savedY;
       };
+
+      // Event listener: Draw header and footer on every new page
+      doc.on('pageAdded', () => {
+        drawHeader();
+        drawFooter();
+      });
 
       // Draw header and footer on first page
       drawHeader();
