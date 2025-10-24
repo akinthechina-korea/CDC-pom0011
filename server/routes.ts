@@ -798,8 +798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           left: 50,
           right: 50
         },
-        bufferPages: true, // Enable buffering to draw header/footer on all pages
-        autoFirstPage: true
+        autoFirstPage: false  // We'll manually add pages to control header/footer
       });
 
       // Register CJK fonts (supports Korean + Chinese characters)
@@ -815,48 +814,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Pipe PDF to response
       doc.pipe(res);
 
-      // Helper function to draw header (absolute positioning)
-      const drawHeader = () => {
+      // Helper function to draw page frame (header + footer)
+      const drawPageFrame = () => {
+        const pageHeight = doc.page.height;
+        const pageWidth = doc.page.width;
+        
+        // Draw header at top
         doc.fontSize(20)
            .font('NotoSansCJK-Bold')
-           .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: 495, lineBreak: false });
+           .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: pageWidth - 100, lineBreak: false });
         
         doc.fontSize(11)
            .font('NotoSansCJK')
-           .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: 495, lineBreak: false });
+           .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: pageWidth - 100, lineBreak: false });
         
         doc.fontSize(10)
-           .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: 495, lineBreak: false });
-        doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: 495, lineBreak: false });
-        doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: 495, lineBreak: false });
+           .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: pageWidth - 100, lineBreak: false });
         
+        // Header divider line
         doc.moveTo(50, 128)
-           .lineTo(545, 128)
+           .lineTo(pageWidth - 50, 128)
            .stroke();
-      };
-
-      // Helper function to draw footer (absolute positioning)
-      const drawFooter = () => {
-        const pageHeight = 841.89; // A4 height in points
         
+        // Draw footer at bottom
         doc.moveTo(50, pageHeight - 50)
-           .lineTo(545, pageHeight - 50)
+           .lineTo(pageWidth - 50, pageHeight - 50)
            .stroke();
         
         doc.fontSize(9)
            .font('NotoSansCJK')
            .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
-                 50, pageHeight - 35, { align: 'center', width: 495, lineBreak: false });
+                 50, pageHeight - 35, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        
+        // Reset cursor to content area (below header)
+        doc.x = doc.page.margins.left;
+        doc.y = doc.page.margins.top;
       };
 
-      // Helper function to check if we need a new page
-      const checkPageBreak = (requiredSpace: number) => {
-        const pageHeight = 841.89;
-        const bottomMargin = 60;
-        if (doc.y + requiredSpace > pageHeight - bottomMargin) {
-          doc.addPage();
-        }
-      };
+      // Event handler: draw frame on every new page
+      doc.on('pageAdded', () => {
+        drawPageFrame();
+      });
+
+      // Add first page and draw frame
+      doc.addPage();
+      drawPageFrame();
 
       // Document Title
       doc.fontSize(16)
@@ -1060,14 +1064,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text('출력일시: ', { continued: true })
          .font('NotoSansCJK')
          .text(dateStr);
-
-      // Draw header and footer on all pages
-      const range = doc.bufferedPageRange();
-      for (let i = 0; i < range.count; i++) {
-        doc.switchToPage(i);
-        drawHeader();
-        drawFooter();
-      }
 
       // Finalize PDF
       doc.end();
