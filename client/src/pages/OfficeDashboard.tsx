@@ -279,35 +279,29 @@ export default function OfficeDashboard({
 
           {selectedReport && (
             <div className="space-y-6 py-4">
-              {/* Report Summary */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-md">
-                <div>
-                  <p className="text-sm text-muted-foreground">Container No.</p>
-                  <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">B/L No.</p>
-                  <p className="font-mono font-semibold">{selectedReport.blNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">차량번호</p>
-                  <p className="font-semibold">{selectedReport.vehicleNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">운송기사</p>
-                  <p className="font-semibold">{selectedReport.driverName}</p>
-                </div>
-              </div>
-
               {/* Driver Report */}
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <CardTitle className="text-base">기사 보고 내용</CardTitle>
+                      <CardDescription className="mt-1">
+                        {selectedReport.driverName} ({selectedReport.vehicleNo})
+                      </CardDescription>
+                    </div>
+                    <div className="text-right text-sm">
+                      <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
+                      <p className="text-muted-foreground font-mono">{selectedReport.blNo}</p>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
-                    {selectedReport.driverDamage}
-                  </p>
+                  <div>
+                    <p className="text-sm font-medium mb-1">파손 내용:</p>
+                    <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
+                      {selectedReport.driverDamage}
+                    </p>
+                  </div>
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -325,13 +319,16 @@ export default function OfficeDashboard({
               {selectedReport.fieldStaff && (
                 <Card className="bg-chart-2/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">현장 확인 내용</CardTitle>
+                    <CardTitle className="text-base">현장 확인 내용</CardTitle>
                     <CardDescription>{selectedReport.fieldStaff}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
-                      {selectedReport.fieldDamage}
-                    </p>
+                    <div>
+                      <p className="text-sm font-medium mb-1">확인 내용:</p>
+                      <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
+                        {selectedReport.fieldDamage}
+                      </p>
+                    </div>
                     {selectedReport.fieldSignature && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -422,36 +419,33 @@ export default function OfficeDashboard({
 
           {selectedReport && (
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-md">
-                <div>
-                  <p className="text-sm text-muted-foreground">Container No.</p>
-                  <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">B/L No.</p>
-                  <p className="font-mono font-semibold">{selectedReport.blNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">차량번호</p>
-                  <p className="font-semibold">{selectedReport.vehicleNo}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">운송기사</p>
-                  <p className="font-semibold">{selectedReport.driverName}</p>
-                </div>
-              </div>
-
               <Card className="bg-chart-3/5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">기사 보고 내용</CardTitle>
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <CardTitle className="text-base">기사 보고 내용</CardTitle>
+                      <CardDescription className="mt-1">
+                        {selectedReport.driverName} ({selectedReport.vehicleNo})
+                      </CardDescription>
+                    </div>
+                    <div className="text-right text-sm">
+                      <p className="font-mono font-semibold">{selectedReport.containerNo}</p>
+                      <p className="text-muted-foreground font-mono">{selectedReport.blNo}</p>
+                    </div>
+                  </div>
                   {selectedReport.driverSubmittedAt && (
-                    <CardDescription className="text-xs">
+                    <CardDescription className="text-xs mt-1">
                       제출: {formatDateTime(selectedReport.driverSubmittedAt)}
                     </CardDescription>
                   )}
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
+                  <div>
+                    <p className="text-sm font-medium mb-1">파손 내용:</p>
+                    <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
+                      {selectedReport.driverDamage}
+                    </p>
+                  </div>
                   {selectedReport.driverSignature && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -468,18 +462,21 @@ export default function OfficeDashboard({
               {selectedReport.fieldStaff && (
                 <Card className="bg-chart-2/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">현장 확인 내용</CardTitle>
+                    <CardTitle className="text-base">현장 확인 내용</CardTitle>
+                    <CardDescription>{selectedReport.fieldStaff}</CardDescription>
                     {selectedReport.fieldSubmittedAt && (
-                      <CardDescription className="text-xs">
+                      <CardDescription className="text-xs mt-1">
                         확인: {formatDateTime(selectedReport.fieldSubmittedAt)}
                       </CardDescription>
                     )}
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p className="whitespace-pre-wrap text-sm">{selectedReport.fieldDamage}</p>
-                    <p className="text-sm text-muted-foreground">
-                      담당: {selectedReport.fieldStaff}
-                    </p>
+                    <div>
+                      <p className="text-sm font-medium mb-1">확인 내용:</p>
+                      <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
+                        {selectedReport.fieldDamage}
+                      </p>
+                    </div>
                     {selectedReport.fieldSignature && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground mb-1">서명:</p>
@@ -497,18 +494,21 @@ export default function OfficeDashboard({
               {selectedReport.officeStaff && (
                 <Card className="bg-chart-1/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">사무실 확인 내용</CardTitle>
+                    <CardTitle className="text-base">사무실 확인 내용</CardTitle>
+                    <CardDescription>{selectedReport.officeStaff}</CardDescription>
                     {selectedReport.completedAt && (
-                      <CardDescription className="text-xs">
+                      <CardDescription className="text-xs mt-1">
                         승인: {formatDateTime(selectedReport.completedAt)}
                       </CardDescription>
                     )}
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p className="whitespace-pre-wrap text-sm">{selectedReport.officeDamage}</p>
-                    <p className="text-sm text-muted-foreground">
-                      담당: {selectedReport.officeStaff}
-                    </p>
+                    <div>
+                      <p className="text-sm font-medium mb-1">확인 내용:</p>
+                      <p className="whitespace-pre-wrap text-sm bg-background/50 p-3 rounded-md">
+                        {selectedReport.officeDamage}
+                      </p>
+                    </div>
                     {selectedReport.officeSignature && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground mb-1">서명:</p>
