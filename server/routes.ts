@@ -798,7 +798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           left: 50,
           right: 50
         },
-        autoFirstPage: false  // We'll manually add pages to control header/footer
+        bufferPages: true  // Buffer all pages to add header/footer at the end
       });
 
       // Register CJK fonts (supports Korean + Chinese characters)
@@ -813,54 +813,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Pipe PDF to response
       doc.pipe(res);
-
-      // Helper function to draw page frame (header + footer)
-      const drawPageFrame = () => {
-        const pageHeight = doc.page.height;
-        const pageWidth = doc.page.width;
-        
-        // Draw header at top
-        doc.fontSize(20)
-           .font('NotoSansCJK-Bold')
-           .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        doc.fontSize(11)
-           .font('NotoSansCJK')
-           .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        doc.fontSize(10)
-           .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        // Header divider line
-        doc.moveTo(50, 128)
-           .lineTo(pageWidth - 50, 128)
-           .stroke();
-        
-        // Draw footer at bottom
-        doc.moveTo(50, pageHeight - 50)
-           .lineTo(pageWidth - 50, pageHeight - 50)
-           .stroke();
-        
-        doc.fontSize(9)
-           .font('NotoSansCJK')
-           .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
-                 50, pageHeight - 35, { align: 'center', width: pageWidth - 100, lineBreak: false });
-        
-        // Reset cursor to content area (below header)
-        doc.x = doc.page.margins.left;
-        doc.y = doc.page.margins.top;
-      };
-
-      // Event handler: draw frame on every new page
-      doc.on('pageAdded', () => {
-        drawPageFrame();
-      });
-
-      // Add first page and draw frame
-      doc.addPage();
-      drawPageFrame();
 
       // Document Title
       doc.fontSize(16)
@@ -1064,6 +1016,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text('출력일시: ', { continued: true })
          .font('NotoSansCJK')
          .text(dateStr);
+
+      // Add header and footer to all pages
+      const range = doc.bufferedPageRange();
+      for (let i = 0; i < range.count; i++) {
+        doc.switchToPage(i);
+        
+        const pageHeight = doc.page.height;
+        const pageWidth = doc.page.width;
+        
+        // Draw header at top
+        doc.fontSize(20)
+           .font('NotoSansCJK-Bold')
+           .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        
+        doc.fontSize(11)
+           .font('NotoSansCJK')
+           .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        
+        doc.fontSize(10)
+           .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: pageWidth - 100, lineBreak: false });
+        
+        // Header divider line
+        doc.moveTo(50, 128)
+           .lineTo(pageWidth - 50, 128)
+           .stroke();
+        
+        // Draw footer at bottom
+        const footerY = pageHeight - 55;
+        doc.moveTo(50, footerY)
+           .lineTo(pageWidth - 50, footerY)
+           .stroke();
+        
+        // Footer text
+        doc.fontSize(8)
+           .font('NotoSansCJK')
+           .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
+                 50, footerY + 10, { align: 'center', width: pageWidth - 100, lineBreak: false });
+      }
 
       // Finalize PDF
       doc.end();
