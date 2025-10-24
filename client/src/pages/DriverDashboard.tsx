@@ -417,7 +417,7 @@ export default function DriverDashboard({
               <Label htmlFor="damage">파손 내용 *</Label>
               <Textarea
                 id="damage"
-                placeholder="여기에 파손내용을 입력해주세요."
+                placeholder="파손 내용을 입력하세요, 예시) 컨테이너 내부 우측 벽면이 안으로 휘어진것을 발결하였습니다."
                 value={formData.driverDamage}
                 onChange={(e) => setFormData(prev => ({ ...prev, driverDamage: e.target.value }))}
                 className="min-h-32"
@@ -520,7 +520,7 @@ export default function DriverDashboard({
                 <Label htmlFor="edit-damage">파손 내용 (수정) *</Label>
                 <Textarea
                   id="edit-damage"
-                  placeholder="여기에 파손내용을 입력해주세요."
+                  placeholder="파손 내용을 입력하세요, 예시) 컨테이너 내부 우측 벽면이 안으로 휘어진것을 발결하였습니다."
                   value={formData.driverDamage}
                   onChange={(e) => setFormData(prev => ({ ...prev, driverDamage: e.target.value }))}
                   className="min-h-32"

@@ -51,7 +51,7 @@ export default function OfficeDashboard({
   const [viewerOpen, setViewerOpen] = useState(false);
   const { toast } = useToast();
 
-  const DEFAULT_OFFICE_DAMAGE = "당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.상기와 같이 확인 합니다";
+  const DEFAULT_OFFICE_DAMAGE = "당사 작업 중 이상은 없음을 알려드리며, 이상 내용 확인 부탁드립니다.";
 
   const formatDateTime = (date: Date | string | null) => {
     if (!date) return "";
