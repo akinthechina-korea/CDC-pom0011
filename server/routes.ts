@@ -793,11 +793,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const doc = new PDFDocument({
         size: 'A4',
         margins: {
-          top: 130,  // Space for header
-          bottom: 70, // Space for footer
+          top: 140,  // Space for header
+          bottom: 60, // Space for footer
           left: 50,
           right: 50
-        }
+        },
+        bufferPages: true, // Enable buffering to draw header/footer on all pages
+        autoFirstPage: true
       });
 
       // Register CJK fonts (supports Korean + Chinese characters)
@@ -813,67 +815,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Pipe PDF to response
       doc.pipe(res);
 
-      // Helper function to draw header on current page
+      // Helper function to draw header (absolute positioning)
       const drawHeader = () => {
-        const savedY = doc.y;
-        
-        // Header - Company Title
         doc.fontSize(20)
            .font('NotoSansCJK-Bold')
            .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: 495, lineBreak: false });
         
-        // Company Slogan
         doc.fontSize(11)
            .font('NotoSansCJK')
            .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: 495, lineBreak: false });
         
-        // Company Address and Contact
         doc.fontSize(10)
            .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: 495, lineBreak: false });
         doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: 495, lineBreak: false });
         doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: 495, lineBreak: false });
         
-        // Header divider line with proper spacing
-        doc.moveTo(50, 124)
-           .lineTo(545, 124)
+        doc.moveTo(50, 128)
+           .lineTo(545, 128)
            .stroke();
-        
-        // Restore position
-        doc.y = savedY;
       };
 
-      // Helper function to draw footer on current page
+      // Helper function to draw footer (absolute positioning)
       const drawFooter = () => {
-        const savedY = doc.y;
-        const pageHeight = doc.page.height;
+        const pageHeight = 841.89; // A4 height in points
         
-        // Footer divider line with proper spacing from text
-        doc.moveTo(50, pageHeight - 55)
-           .lineTo(545, pageHeight - 55)
+        doc.moveTo(50, pageHeight - 50)
+           .lineTo(545, pageHeight - 50)
            .stroke();
         
-        // Footer text with proper spacing from line
         doc.fontSize(9)
            .font('NotoSansCJK')
            .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
-                 50, pageHeight - 40, { align: 'center', width: 495, lineBreak: false });
-        
-        // Restore position
-        doc.y = savedY;
+                 50, pageHeight - 35, { align: 'center', width: 495, lineBreak: false });
       };
 
-      // Event listener: Draw header and footer on every new page
-      doc.on('pageAdded', () => {
-        drawHeader();
-        drawFooter();
-      });
-
-      // Draw header and footer on first page
-      drawHeader();
-      drawFooter();
-
-      // Start content after header
-      doc.y = 130;
+      // Helper function to check if we need a new page
+      const checkPageBreak = (requiredSpace: number) => {
+        const pageHeight = 841.89;
+        const bottomMargin = 60;
+        if (doc.y + requiredSpace > pageHeight - bottomMargin) {
+          doc.addPage();
+        }
+      };
 
       // Document Title
       doc.fontSize(16)
@@ -1078,7 +1061,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .font('NotoSansCJK')
          .text(dateStr);
 
-      // Finalize PDF (footer is automatically added to all pages)
+      // Draw header and footer on all pages
+      const range = doc.bufferedPageRange();
+      for (let i = 0; i < range.count; i++) {
+        doc.switchToPage(i);
+        drawHeader();
+        drawFooter();
+      }
+
+      // Finalize PDF
       doc.end();
     } catch (error) {
       console.error('PDF generation error:', error);
