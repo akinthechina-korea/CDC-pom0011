@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClipboardCheck, ArrowLeft, CheckCircle, XCircle, Download } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
+import SignatureCanvas from "@/components/SignatureCanvas";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, FieldStaff } from "@shared/schema";
@@ -356,16 +357,10 @@ export default function FieldDashboard({
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="field-signature">서명 (이름) *</Label>
-                  <Input
-                    id="field-signature"
-                    placeholder="이름을 입력하세요"
-                    value={formData.fieldSignature}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fieldSignature: e.target.value }))}
-                    data-testid="input-field-signature"
-                  />
-                </div>
+                <SignatureCanvas
+                  onSignatureChange={(signature) => setFormData(prev => ({ ...prev, fieldSignature: signature || "" }))}
+                  label="서명 *"
+                />
               </div>
 
               <div className="flex gap-3 pt-4">

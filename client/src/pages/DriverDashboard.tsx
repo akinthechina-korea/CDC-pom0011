@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, Plus, ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
 import { PhotoUploader } from "@/components/PhotoUploader";
+import SignatureCanvas from "@/components/SignatureCanvas";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, Cargo } from "@shared/schema";
@@ -427,16 +428,10 @@ export default function DriverDashboard({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signature">서명 (이름) *</Label>
-              <Input
-                id="signature"
-                placeholder="이름을 입력하세요"
-                value={formData.driverSignature}
-                onChange={(e) => setFormData(prev => ({ ...prev, driverSignature: e.target.value }))}
-                data-testid="input-signature"
-              />
-            </div>
+            <SignatureCanvas
+              onSignatureChange={(signature) => setFormData(prev => ({ ...prev, driverSignature: signature || "" }))}
+              label="서명 *"
+            />
 
             <div className="flex gap-3 pt-4">
               <Button
@@ -518,16 +513,10 @@ export default function DriverDashboard({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-signature">서명 (이름) *</Label>
-                <Input
-                  id="edit-signature"
-                  placeholder="이름을 입력하세요"
-                  value={formData.driverSignature}
-                  onChange={(e) => setFormData(prev => ({ ...prev, driverSignature: e.target.value }))}
-                  data-testid="input-edit-signature"
-                />
-              </div>
+              <SignatureCanvas
+                onSignatureChange={(signature) => setFormData(prev => ({ ...prev, driverSignature: signature || "" }))}
+                label="서명 (재제출) *"
+              />
 
               <div className="flex gap-3 pt-4">
                 <Button

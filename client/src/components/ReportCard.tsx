@@ -113,6 +113,16 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
                         사유: {item.reason}
                       </p>
                     )}
+                    {item.signature && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground mb-1">서명:</p>
+                        <img 
+                          src={item.signature} 
+                          alt="서명" 
+                          className="h-12 border rounded bg-white"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

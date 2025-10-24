@@ -966,34 +966,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       doc.moveDown(1);
 
+      // Get last signatures from actionHistory
+      const actionHistory = report.actionHistory || [];
+      const lastDriverSig = actionHistory.filter(a => a.actorRole === 'driver' && a.signature).pop()?.signature;
+      const lastFieldSig = actionHistory.filter(a => a.actorRole === 'field' && a.signature).pop()?.signature;
+      const lastOfficeSig = actionHistory.filter(a => a.actorRole === 'office' && a.signature).pop()?.signature;
+
+      // Driver signature
       doc.fontSize(11)
          .font('NotoSansCJK-Bold')
          .text('운송기사: ', { continued: true })
          .font('NotoSansCJK')
          .text(report.driverName);
       doc.moveDown(0.5);
-      doc.font('NotoSansCJK')
-         .text(`서명: ${report.driverSignature}`, { indent: 20 });
+      if (lastDriverSig) {
+        const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+        doc.image(driverSigBuffer, 70, doc.y, { width: 150, height: 40 });
+        doc.moveDown(3);
+      } else {
+        doc.font('NotoSansCJK')
+           .text(`서명: ${report.driverSignature}`, { indent: 20 });
+        doc.moveDown(0.5);
+      }
       
       doc.moveDown(1);
 
+      // Field signature
       doc.font('NotoSansCJK-Bold')
          .text('현장책임자: ', { continued: true })
          .font('NotoSansCJK')
          .text(report.fieldStaff || '');
       doc.moveDown(0.5);
-      doc.font('NotoSansCJK')
-         .text(`서명: ${report.fieldSignature || ''}`, { indent: 20 });
+      if (lastFieldSig) {
+        const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+        doc.image(fieldSigBuffer, 70, doc.y, { width: 150, height: 40 });
+        doc.moveDown(3);
+      } else if (report.fieldSignature) {
+        doc.font('NotoSansCJK')
+           .text(`서명: ${report.fieldSignature}`, { indent: 20 });
+        doc.moveDown(0.5);
+      }
       
       doc.moveDown(1);
 
+      // Office signature
       doc.font('NotoSansCJK-Bold')
          .text('사무실 책임자: ', { continued: true })
          .font('NotoSansCJK')
          .text(report.officeStaff || '');
       doc.moveDown(0.5);
-      doc.font('NotoSansCJK')
-         .text(`서명: ${report.officeSignature || ''}`, { indent: 20 });
+      if (lastOfficeSig) {
+        const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+        doc.image(officeSigBuffer, 70, doc.y, { width: 150, height: 40 });
+        doc.moveDown(3);
+      } else if (report.officeSignature) {
+        doc.font('NotoSansCJK')
+           .text(`서명: ${report.officeSignature}`, { indent: 20 });
+        doc.moveDown(0.5);
+      }
       
       doc.moveDown(1.8);
 

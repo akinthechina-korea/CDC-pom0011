@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, ArrowLeft, CheckCircle, Download, XCircle, AlertCircle } from "lucide-react";
 import { ReportCard } from "@/components/ReportCard";
+import SignatureCanvas from "@/components/SignatureCanvas";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, OfficeStaff } from "@shared/schema";
@@ -350,16 +351,10 @@ export default function OfficeDashboard({
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="office-signature">서명 (이름) *</Label>
-                  <Input
-                    id="office-signature"
-                    placeholder="이름을 입력하세요"
-                    value={formData.officeSignature}
-                    onChange={(e) => setFormData(prev => ({ ...prev, officeSignature: e.target.value }))}
-                    data-testid="input-office-signature"
-                  />
-                </div>
+                <SignatureCanvas
+                  onSignatureChange={(signature) => setFormData(prev => ({ ...prev, officeSignature: signature || "" }))}
+                  label="서명 *"
+                />
               </div>
 
               <div className="flex gap-3 pt-4">
