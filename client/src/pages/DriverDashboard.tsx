@@ -589,7 +589,7 @@ export default function DriverDashboard({
                       <img 
                         src={selectedReport.driverSignature} 
                         alt="기사 서명" 
-                        className="h-12 border rounded bg-white"
+                        className="h-16 max-w-[200px] border rounded bg-white p-1"
                       />
                     </div>
                   )}
@@ -633,7 +633,7 @@ export default function DriverDashboard({
                         <img 
                           src={selectedReport.fieldSignature} 
                           alt="현장 서명" 
-                          className="h-12 border rounded bg-white"
+                          className="h-16 max-w-[200px] border rounded bg-white p-1"
                         />
                       </div>
                     )}
@@ -662,7 +662,7 @@ export default function DriverDashboard({
                         <img 
                           src={selectedReport.officeSignature} 
                           alt="사무실 서명" 
-                          className="h-12 border rounded bg-white"
+                          className="h-16 max-w-[200px] border rounded bg-white p-1"
                         />
                       </div>
                     )}
