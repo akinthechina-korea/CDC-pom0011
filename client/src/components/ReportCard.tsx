@@ -54,6 +54,9 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
             <p className="text-sm text-muted-foreground font-mono" data-testid={`text-bl-${report.id}`}>
               {report.blNo}
             </p>
+            <p className="text-xs text-muted-foreground" data-testid={`text-date-${report.id}`}>
+              화물 일자: {report.reportDate}
+            </p>
           </div>
           <StatusBadge status={report.status as any} />
         </div>
