@@ -778,16 +778,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "완료된 보고서만 다운로드할 수 있습니다" });
       }
 
-      const dateStr = report.completedAt 
-        ? new Date(report.completedAt).toLocaleString('ko-KR')
-        : new Date().toLocaleString('ko-KR');
+      // PDF 생성 시점의 날짜/시간
+      const now = new Date();
+      const dateStr = now.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
 
-      // Create PDF document
+      // Create PDF document with margins for header/footer
       const doc = new PDFDocument({
         size: 'A4',
         margins: {
-          top: 50,
-          bottom: 50,
+          top: 120,  // Space for header
+          bottom: 80, // Space for footer
           left: 50,
           right: 50
         }
@@ -815,31 +822,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.moveDown(0.8);
       };
 
-      // Header - Company Title (Large and prominent)
-      doc.fontSize(20)
-         .font('NotoSansCJK-Bold')
-         .text('(株)天 一 國 際 物 流', { align: 'center' });
-      
-      doc.moveDown(0.6);
+      // Helper function to draw header on current page
+      const drawHeader = () => {
+        const savedY = doc.y;
+        
+        // Header - Company Title
+        doc.fontSize(20)
+           .font('NotoSansCJK-Bold')
+           .text('(株)天 一 國 際 物 流', 50, 30, { align: 'center', width: 495, lineBreak: false });
+        
+        // Company Slogan
+        doc.fontSize(11)
+           .font('NotoSansCJK')
+           .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 50, 58, { align: 'center', width: 495, lineBreak: false });
+        
+        // Company Address and Contact
+        doc.fontSize(10)
+           .text('경기도 평택시 포승읍 평택항로 95', 50, 78, { align: 'center', width: 495, lineBreak: false });
+        doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', 50, 92, { align: 'center', width: 495, lineBreak: false });
+        doc.text('www.chunilkor.co.kr', 50, 106, { align: 'center', width: 495, lineBreak: false });
+        
+        // Header divider line
+        doc.moveTo(50, 118)
+           .lineTo(545, 118)
+           .stroke();
+        
+        // Restore position
+        doc.y = savedY;
+      };
 
-      // Company Slogan
-      doc.fontSize(11)
-         .font('NotoSansCJK')
-         .text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', { align: 'center' });
-      
-      doc.moveDown(0.8);
+      // Helper function to draw footer on current page
+      const drawFooter = () => {
+        const savedY = doc.y;
+        const pageHeight = doc.page.height;
+        
+        // Footer divider line
+        doc.moveTo(50, pageHeight - 60)
+           .lineTo(545, pageHeight - 60)
+           .stroke();
+        
+        // Footer text
+        doc.fontSize(9)
+           .font('NotoSansCJK')
+           .text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
+                 50, pageHeight - 48, { align: 'center', width: 495, lineBreak: false });
+        
+        // Restore position
+        doc.y = savedY;
+      };
 
-      // Company Address and Contact
-      doc.fontSize(10)
-         .text('경기도 평택시 포승읍 평택항로 95', { align: 'center' });
-      doc.moveDown(0.3);
-      doc.text('TEL: 031-683-7040  |  FAX: 031-683-7044', { align: 'center' });
-      doc.moveDown(0.3);
-      doc.text('www.chunilkor.co.kr', { align: 'center' });
-      
-      doc.moveDown(1.2);
-      addDivider();
-      doc.moveDown(1.2);
+      // Draw header and footer on first page
+      drawHeader();
+      drawFooter();
+
+      // Start content after header
+      doc.y = 130;
 
       // Document Title
       doc.fontSize(16)
@@ -912,8 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text('[운송기사]', { continued: false });
       doc.moveDown(0.5);
       doc.font('NotoSansCJK')
-         .text('기사인 저가 현장에서 체크후 천일과 관계없이 컨테이너 원래 부터 일부 파손등 이', { indent: 20 });
-      doc.text('있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
+         .text(report.driverDamage || '', { indent: 20, width: 475 });
       
       doc.moveDown(1);
 
@@ -922,8 +958,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text('[현장 책임자]', { continued: false });
       doc.moveDown(0.5);
       doc.font('NotoSansCJK')
-         .text('현장 책임자인 저가 체크후 기사님 서술과 일치합니다. 즉 천일과 관계없이 컨테이너', { indent: 20 });
-      doc.text('원래 부터 일부 파손등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
+         .text(report.fieldDamage || '', { indent: 20, width: 475 });
       
       doc.moveDown(1);
 
@@ -932,30 +967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text('[사무실 책임자]', { continued: false });
       doc.moveDown(0.5);
       doc.font('NotoSansCJK')
-         .text('현장 책임자의 서술에 동의합니다. 즉 천일과 관계없이 컨테이너 원래 부터 일부 파손', { indent: 20 });
-      doc.text('등 이 있는걸 발견했습니다. 이미지 부착한대로.', { indent: 20 });
-      
-      doc.moveDown(1.8);
-
-      // Remarks Section
-      doc.fontSize(13)
-         .font('NotoSansCJK-Bold')
-         .text('비 고');
-      
-      doc.moveDown(1);
-
-      doc.fontSize(11)
-         .font('NotoSansCJK')
-         .text('1. 상기 컨테이너는 천일에 입고하여 컨테이너 문을 개장하였는데, 일부 파손된 것을', { indent: 20 });
-      doc.text('   컨테이너 운송 기사님과 확인하였습니다.', { indent: 20 });
-      
-      doc.moveDown(1);
-      
-      doc.text('2. 당사에서는 작업 간에 이상이 없었으니 확인 부탁 드립니다.', { indent: 20 });
-      
-      doc.moveDown(1);
-      
-      doc.text('3. 상기와 같이 확인 합니다.', { indent: 20 });
+         .text(report.officeDamage || '', { indent: 20, width: 475 });
       
       doc.moveDown(1.8);
 
@@ -1051,19 +1063,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Date
       doc.fontSize(11)
          .font('NotoSansCJK-Bold')
-         .text('작성일시: ', { continued: true })
+         .text('출력일시: ', { continued: true })
          .font('NotoSansCJK')
          .text(dateStr);
-      
-      doc.moveDown(0.8);
-      addDivider();
 
-      // Footer
-      doc.fontSize(9)
-         .font('NotoSansCJK')
-         .text('본 확인서는 천일국제물류에서 발행한 공식 문서입니다.', { align: 'center' });
-
-      // Finalize PDF
+      // Finalize PDF (footer is automatically added to all pages)
       doc.end();
     } catch (error) {
       console.error('PDF generation error:', error);
