@@ -583,7 +583,16 @@ export default function DriverDashboard({
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="whitespace-pre-wrap text-sm">{selectedReport.driverDamage}</p>
-                  <p className="text-sm text-muted-foreground">서명: {selectedReport.driverSignature}</p>
+                  {selectedReport.driverSignature && (
+                    <div className="mt-2">
+                      <p className="text-xs text-muted-foreground mb-1">서명:</p>
+                      <img 
+                        src={selectedReport.driverSignature} 
+                        alt="기사 서명" 
+                        className="h-12 border rounded bg-white"
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -616,8 +625,18 @@ export default function DriverDashboard({
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.fieldDamage}</p>
                     <p className="text-sm text-muted-foreground">
-                      담당: {selectedReport.fieldStaff} | 서명: {selectedReport.fieldSignature}
+                      담당: {selectedReport.fieldStaff}
                     </p>
+                    {selectedReport.fieldSignature && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground mb-1">서명:</p>
+                        <img 
+                          src={selectedReport.fieldSignature} 
+                          alt="현장 서명" 
+                          className="h-12 border rounded bg-white"
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -635,8 +654,18 @@ export default function DriverDashboard({
                   <CardContent className="space-y-2">
                     <p className="whitespace-pre-wrap text-sm">{selectedReport.officeDamage}</p>
                     <p className="text-sm text-muted-foreground">
-                      담당: {selectedReport.officeStaff} | 서명: {selectedReport.officeSignature}
+                      담당: {selectedReport.officeStaff}
                     </p>
+                    {selectedReport.officeSignature && (
+                      <div className="mt-2">
+                        <p className="text-xs text-muted-foreground mb-1">서명:</p>
+                        <img 
+                          src={selectedReport.officeSignature} 
+                          alt="사무실 서명" 
+                          className="h-12 border rounded bg-white"
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
