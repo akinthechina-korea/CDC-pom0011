@@ -437,12 +437,12 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       // Add action to history
       const actionHistory = existingReport.actionHistory || [];
       actionHistory.push({
-        action: 'resubmit',
+        actionType: 'resubmit',
         timestamp: new Date().toISOString(),
-        actorName: actorName || existingReport.driverName,
-        actorRole: actorRole || 'driver',
-        signature: signature || null,
-        reason: null
+        actor: actorName || existingReport.driverName,
+        actorRole: (actorRole || 'driver') as 'driver' | 'field' | 'office',
+        signature: signature,
+        reason: undefined
       });
 
       const [updated] = await db.update(reports)
@@ -451,7 +451,7 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
           driverDamage,
           damagePhotos,
           driverSignature: signature,
-          driverSubmittedAt: new Date().toISOString(),
+          driverSubmittedAt: new Date(),
           actionHistory
         })
         .where(eq(reports.id, id))
@@ -482,12 +482,12 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       // Add action to history
       const actionHistory = existingReport.actionHistory || [];
       actionHistory.push({
-        action: approved ? 'field_approve' : 'field_reject',
+        actionType: approved ? 'approve' : 'reject',
         timestamp: new Date().toISOString(),
-        actorName: actorName || existingReport.fieldStaff || '',
-        actorRole: actorRole || 'field',
-        signature: approved ? (signature || null) : null,
-        reason: approved ? null : (reason || null)
+        actor: actorName || existingReport.fieldStaff || '',
+        actorRole: (actorRole || 'field') as 'driver' | 'field' | 'office',
+        signature: approved ? signature : undefined,
+        reason: approved ? undefined : reason
       });
 
       const [updated] = await db.update(reports)
@@ -495,7 +495,7 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
           status: approved ? 'field_submitted' : 'rejected',
           fieldDamage: approved ? fieldDamage : existingReport.fieldDamage,
           fieldSignature: approved ? signature : null,
-          fieldReviewedAt: new Date().toISOString(),
+          fieldSubmittedAt: new Date(),
           actionHistory
         })
         .where(eq(reports.id, id))
@@ -526,12 +526,12 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
       // Add action to history
       const actionHistory = existingReport.actionHistory || [];
       actionHistory.push({
-        action: approved ? 'office_approve' : 'office_reject',
+        actionType: approved ? 'office_approve' : 'office_reject',
         timestamp: new Date().toISOString(),
-        actorName: actorName || existingReport.officeStaff || '',
-        actorRole: actorRole || 'office',
-        signature: approved ? (signature || null) : null,
-        reason: approved ? null : (reason || null)
+        actor: actorName || existingReport.officeStaff || '',
+        actorRole: (actorRole || 'office') as 'driver' | 'field' | 'office',
+        signature: approved ? signature : undefined,
+        reason: approved ? undefined : reason
       });
 
       const [updated] = await db.update(reports)
@@ -539,7 +539,7 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
           status: approved ? 'completed' : 'driver_submitted',
           officeDamage: approved ? officeDamage : existingReport.officeDamage,
           officeSignature: approved ? signature : null,
-          officeApprovedAt: approved ? new Date().toISOString() : null,
+          completedAt: approved ? new Date() : null,
           actionHistory
         })
         .where(eq(reports.id, id))
@@ -853,7 +853,7 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         return res.status(401).json({ error: "차량을 찾을 수 없습니다" });
       }
       
-      const passwordWithoutHyphen = vehicle.phone.replace(/-/g, '');
+      const passwordWithoutHyphen = vehicle.driverPhone.replace(/-/g, '');
       if (password !== passwordWithoutHyphen) {
         return res.status(401).json({ error: "비밀번호가 일치하지 않습니다" });
       }
@@ -862,7 +862,7 @@ export async function registerRoutes(app: express.Application): Promise<Server> 
         role: 'driver',
         vehicleNo: vehicle.vehicleNo,
         driverName: vehicle.driverName,
-        phone: vehicle.phone
+        phone: vehicle.driverPhone
       });
     } catch (error) {
       console.error('Driver login error:', error);
