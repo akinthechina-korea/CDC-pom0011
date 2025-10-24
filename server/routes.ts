@@ -18,7 +18,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import puppeteer from "puppeteer";
+import PDFDocument from "pdfkit";
 
 // Configure multer for file upload
 const uploadDir = path.join(process.cwd(), "attached_assets", "damage_photos");
@@ -766,9 +766,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download report as PDF file using Puppeteer + HTML template
+  // Download report as PDF file using PDFKit with absolute positioning
   app.get("/api/reports/:id/download", async (req, res) => {
-    let browser;
     try {
       const report = await storage.getReport(req.params.id);
       if (!report) {
@@ -796,74 +795,203 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lastFieldSig = actionHistory.filter(a => a.actorRole === 'field' && a.signature).pop()?.signature;
       const lastOfficeSig = actionHistory.filter(a => a.actorRole === 'office' && a.signature).pop()?.signature;
 
-      // Prepare signature HTML
-      const driverSignatureHtml = lastDriverSig 
-        ? `<img src="${lastDriverSig}" class="signature-image" alt="운송기사 서명" />`
-        : '<div class="signature-placeholder">서명 이미지</div>';
-      
-      const fieldSignatureHtml = lastFieldSig
-        ? `<img src="${lastFieldSig}" class="signature-image" alt="현장 책임자 서명" />`
-        : '<div class="signature-placeholder">서명 이미지</div>';
-      
-      const officeSignatureHtml = lastOfficeSig
-        ? `<img src="${lastOfficeSig}" class="signature-image" alt="사무실 책임자 서명" />`
-        : '<div class="signature-placeholder">서명 이미지</div>';
+      // Create PDF document with NO auto first page
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 0,
+        autoFirstPage: false
+      });
 
-      // Read HTML template
-      const templatePath = path.join(process.cwd(), 'server', 'pdf-template.html');
-      let htmlContent = fs.readFileSync(templatePath, 'utf-8');
+      // Register CJK fonts
+      const fontPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansCJK-Regular.otf');
+      const fontBoldPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansCJK-Bold.otf');
+      doc.registerFont('NotoSansCJK', fontPath);
+      doc.registerFont('NotoSansCJK-Bold', fontBoldPath);
 
-      // Replace placeholders
-      htmlContent = htmlContent
-        .replace(/{{containerNo}}/g, report.containerNo || '')
-        .replace(/{{blNo}}/g, report.blNo || '')
-        .replace(/{{vehicleNo}}/g, report.vehicleNo || '')
-        .replace(/{{driverName}}/g, report.driverName || '')
-        .replace(/{{driverPhone}}/g, report.driverPhone || '')
-        .replace(/{{reportDate}}/g, report.reportDate || '')
-        .replace(/{{officeStaff}}/g, report.officeStaff || '')
-        .replace(/{{fieldStaff}}/g, report.fieldStaff || '')
-        .replace(/{{driverDamage}}/g, report.driverDamage || '')
-        .replace(/{{fieldDamage}}/g, report.fieldDamage || '')
-        .replace(/{{officeDamage}}/g, report.officeDamage || '')
-        .replace(/{{driverSignatureHtml}}/g, driverSignatureHtml)
-        .replace(/{{fieldSignatureHtml}}/g, fieldSignatureHtml)
-        .replace(/{{officeSignatureHtml}}/g, officeSignatureHtml)
-        .replace(/{{dateStr}}/g, dateStr);
+      // Set response headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
 
-      // Launch Puppeteer and generate PDF with proper cleanup
-      try {
-        browser = await puppeteer.launch({
-          headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-        
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      // Pipe to response
+      doc.pipe(res);
 
-        // Generate PDF
-        const pdfBuffer = await page.pdf({
-          format: 'A4',
-          printBackground: true,
-          margin: {
-            top: '0px',
-            right: '0px',
-            bottom: '0px',
-            left: '0px'
-          }
-        });
+      // Add single page
+      doc.addPage();
 
-        // Set response headers
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.pdf"`);
-        res.send(pdfBuffer);
+      // Constants
+      const pageWidth = 595; // A4 width in points
+      const pageHeight = 842; // A4 height in points
+      let y = 40;
 
-      } finally {
-        // Always close browser to prevent memory leaks
-        if (browser) {
-          await browser.close();
-        }
+      // Header
+      doc.fontSize(20).font('NotoSansCJK-Bold');
+      doc.text('(株)天 一 國 際 物 流', 0, y, { align: 'center', width: pageWidth });
+      y += 30;
+
+      doc.fontSize(10).font('NotoSansCJK');
+      doc.text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 0, y, { align: 'center', width: pageWidth });
+      y += 18;
+
+      doc.fontSize(9);
+      doc.text('경기도 평택시 포승읍 평택항로 95', 0, y, { align: 'center', width: pageWidth });
+      y += 14;
+      doc.text('TEL: 031-683-7040 | FAX: 031-683-7044', 0, y, { align: 'center', width: pageWidth });
+      y += 14;
+      doc.fillColor('#0066cc');
+      doc.text('www.chunilkor.co.kr', 0, y, { align: 'center', width: pageWidth });
+      doc.fillColor('#000');
+      y += 20;
+
+      // Header divider
+      doc.moveTo(50, y).lineTo(pageWidth - 50, y).stroke();
+      y += 25;
+
+      // Title
+      doc.fontSize(18).font('NotoSansCJK-Bold');
+      doc.text('컨테이너 DAMAGE 확인서', 0, y, { align: 'center', width: pageWidth });
+      y += 35;
+
+      // Document info
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('발 신: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.officeStaff || '');
+      y += 20;
+
+      doc.font('NotoSansCJK-Bold').text('제 목: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text('컨테이너 DAMAGE의 건');
+      y += 25;
+
+      // Container details
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('Container No.: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.containerNo || '');
+      y += 16;
+
+      doc.font('NotoSansCJK-Bold').text('B/L No.: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.blNo || '');
+      y += 16;
+
+      doc.font('NotoSansCJK-Bold').text('차량 번호: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.vehicleNo || '');
+      y += 16;
+
+      doc.font('NotoSansCJK-Bold').text('운송 기사: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.driverName || '');
+      y += 16;
+
+      doc.font('NotoSansCJK-Bold').text('운송기사 연락처: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.driverPhone || '');
+      y += 16;
+
+      doc.font('NotoSansCJK-Bold').text('화물 일자: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK').text(report.reportDate || '');
+      y += 25;
+
+      // Content section
+      // Driver section (limit height to prevent overflow)
+      doc.font('NotoSansCJK-Bold');
+      doc.text('[운송기사]', 50, y);
+      y += 15;
+      doc.font('NotoSansCJK').fontSize(10);
+      const driverText = (report.driverDamage || '').substring(0, 200); // Limit text
+      doc.text(driverText, 50, y, { width: 495, lineGap: 2 });
+      y += 45;
+
+      // Field section
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('[현장 책임자]', 50, y);
+      y += 15;
+      doc.font('NotoSansCJK').fontSize(10);
+      const fieldText = (report.fieldDamage || '').substring(0, 200);
+      doc.text(fieldText, 50, y, { width: 495, lineGap: 2 });
+      y += 45;
+
+      // Office section
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('[사무실 책임자]', 50, y);
+      y += 15;
+      doc.font('NotoSansCJK').fontSize(10);
+      const officeText = (report.officeDamage || '').substring(0, 200);
+      doc.text(officeText, 50, y, { width: 495, lineGap: 2 });
+      y += 45;
+
+      // Check if we need a new page for signatures
+      if (y > pageHeight - 200) {
+        doc.addPage();
+        y = 40;
       }
+
+      // Signature section - 2x2 Grid
+      doc.fontSize(13).font('NotoSansCJK-Bold');
+      doc.text('서 명', 50, y);
+      y += 20;
+
+      const leftX = 50;
+      const rightX = 300;
+      let signatureY = y;
+
+      // Row 1: Driver (left) and Field (right)
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('운송기사: ', leftX, signatureY, { continued: true });
+      doc.font('NotoSansCJK').text(report.driverName || '');
+      
+      if (lastDriverSig) {
+        try {
+          const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          doc.image(driverSigBuffer, leftX, signatureY + 15, { width: 120, height: 30 });
+        } catch (err) {
+          doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+        }
+      } else {
+        doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+      }
+
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('현장 책임자: ', rightX, signatureY, { continued: true });
+      doc.font('NotoSansCJK').text(report.fieldStaff || '');
+      
+      if (lastFieldSig) {
+        try {
+          const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          doc.image(fieldSigBuffer, rightX, signatureY + 15, { width: 120, height: 30 });
+        } catch (err) {
+          doc.fontSize(9).text('서명 이미지', rightX, signatureY + 15);
+        }
+      } else {
+        doc.fontSize(9).text('서명 이미지', rightX, signatureY + 15);
+      }
+
+      signatureY += 60;
+
+      // Row 2: Office (left) and Date (right)
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('사무실 책임자: ', leftX, signatureY, { continued: true });
+      doc.font('NotoSansCJK').text(report.officeStaff || '');
+      
+      if (lastOfficeSig) {
+        try {
+          const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          doc.image(officeSigBuffer, leftX, signatureY + 15, { width: 120, height: 30 });
+        } catch (err) {
+          doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+        }
+      } else {
+        doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+      }
+
+      doc.fontSize(11).font('NotoSansCJK-Bold');
+      doc.text('출력일시:', rightX, signatureY);
+      doc.font('NotoSansCJK').text(dateStr, rightX, signatureY + 15);
+
+      // Footer at bottom
+      const footerY = pageHeight - 50;
+      doc.moveTo(50, footerY).lineTo(pageWidth - 50, footerY).stroke();
+      doc.fontSize(8).font('NotoSansCJK');
+      doc.text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
+               0, footerY + 10, { align: 'center', width: pageWidth });
+
+      // Finalize
+      doc.end();
 
     } catch (error) {
       console.error('PDF generation error:', error);
