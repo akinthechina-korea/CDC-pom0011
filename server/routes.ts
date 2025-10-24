@@ -980,12 +980,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text(report.driverName);
       doc.moveDown(0.5);
       if (lastDriverSig) {
-        const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-        doc.image(driverSigBuffer, 70, doc.y, { width: 150, height: 40 });
-        doc.moveDown(3);
-      } else {
+        try {
+          const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          doc.image(driverSigBuffer, 70, doc.y, { width: 150, height: 40 });
+          doc.moveDown(3);
+        } catch (error) {
+          console.error('Failed to embed driver signature image:', error);
+          doc.font('NotoSansCJK')
+             .text('[서명 이미지]', { indent: 20 });
+          doc.moveDown(0.5);
+        }
+      } else if (report.driverSignature) {
         doc.font('NotoSansCJK')
-           .text(`서명: ${report.driverSignature}`, { indent: 20 });
+           .text('[서명 완료]', { indent: 20 });
         doc.moveDown(0.5);
       }
       
@@ -998,12 +1005,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text(report.fieldStaff || '');
       doc.moveDown(0.5);
       if (lastFieldSig) {
-        const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-        doc.image(fieldSigBuffer, 70, doc.y, { width: 150, height: 40 });
-        doc.moveDown(3);
+        try {
+          const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          doc.image(fieldSigBuffer, 70, doc.y, { width: 150, height: 40 });
+          doc.moveDown(3);
+        } catch (error) {
+          console.error('Failed to embed field signature image:', error);
+          doc.font('NotoSansCJK')
+             .text('[서명 이미지]', { indent: 20 });
+          doc.moveDown(0.5);
+        }
       } else if (report.fieldSignature) {
         doc.font('NotoSansCJK')
-           .text(`서명: ${report.fieldSignature}`, { indent: 20 });
+           .text('[서명 완료]', { indent: 20 });
         doc.moveDown(0.5);
       }
       
@@ -1016,12 +1030,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
          .text(report.officeStaff || '');
       doc.moveDown(0.5);
       if (lastOfficeSig) {
-        const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-        doc.image(officeSigBuffer, 70, doc.y, { width: 150, height: 40 });
-        doc.moveDown(3);
+        try {
+          const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          doc.image(officeSigBuffer, 70, doc.y, { width: 150, height: 40 });
+          doc.moveDown(3);
+        } catch (error) {
+          console.error('Failed to embed office signature image:', error);
+          doc.font('NotoSansCJK')
+             .text('[서명 이미지]', { indent: 20 });
+          doc.moveDown(0.5);
+        }
       } else if (report.officeSignature) {
         doc.font('NotoSansCJK')
-           .text(`서명: ${report.officeSignature}`, { indent: 20 });
+           .text('[서명 완료]', { indent: 20 });
         doc.moveDown(0.5);
       }
       
