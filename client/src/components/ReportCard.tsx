@@ -119,7 +119,7 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
                         <img 
                           src={item.signature} 
                           alt="서명" 
-                          className="h-12 border rounded bg-white"
+                          className="h-16 max-w-[200px] border rounded bg-white p-1"
                         />
                       </div>
                     )}
