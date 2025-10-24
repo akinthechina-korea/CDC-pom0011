@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>컨테이너 DAMAGE 확인서</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #000;
+      background: white;
+      padding: 40px 50px;
+    }
+    
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      font-size: 20pt;
+      font-weight: bold;
+      margin-bottom: 8px;
+      letter-spacing: 3px;
+    }
+    
+    .header .slogan {
+      font-size: 10pt;
+      margin-bottom: 5px;
+    }
+    
+    .header .address {
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+    
+    .header .website {
+      font-size: 9pt;
+      color: #0066cc;
+      margin-top: 3px;
+    }
+    
+    .title {
+      text-align: center;
+      font-size: 18pt;
+      font-weight: bold;
+      margin: 30px 0;
+      letter-spacing: 2px;
+    }
+    
+    .section {
+      margin-bottom: 20px;
+    }
+    
+    .info-row {
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+    
+    .label {
+      font-weight: bold;
+    }
+    
+    .divider {
+      border-bottom: 1px solid #ddd;
+      margin: 20px 0;
+    }
+    
+    .content-section {
+      margin-top: 25px;
+    }
+    
+    .content-header {
+      font-size: 13pt;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    
+    .damage-type {
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+    
+    .role-section {
+      margin-bottom: 18px;
+    }
+    
+    .role-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .role-content {
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+    
+    .signature-section {
+      margin-top: 35px;
+    }
+    
+    .signature-header {
+      font-size: 13pt;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px 40px;
+      margin-bottom: 25px;
+    }
+    
+    .signature-item {
+      min-height: 80px;
+    }
+    
+    .signature-label {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .signature-image {
+      margin-top: 10px;
+      max-width: 200px;
+      max-height: 60px;
+      border: 1px solid #eee;
+      padding: 5px;
+    }
+    
+    .signature-placeholder {
+      color: #999;
+      font-size: 9pt;
+      margin-top: 10px;
+    }
+    
+    .footer {
+      position: fixed;
+      bottom: 30px;
+      left: 50px;
+      right: 50px;
+      text-align: center;
+      border-top: 1px solid #000;
+      padding-top: 10px;
+      font-size: 8pt;
+    }
+    
+    .page-break {
+      page-break-after: always;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>(株)天 一 國 際 物 流</h1>
+    <div class="slogan">수입에서 통관하여 배송까지 천일국제물류에서 책임집니다</div>
+    <div class="address">
+      경기도 평택시 포승읍 평택항로 95<br>
+      TEL: 031-683-7040 | FAX: 031-683-7044<br>
+      <span class="website">www.chunilkor.co.kr</span>
+    </div>
+  </div>
+  
+  <!-- Title -->
+  <div class="title">컨테이너 DAMAGE 확인서</div>
+  
+  <!-- Document Info -->
+  <div class="section">
+    <div class="info-row">
+      <span class="label">발 신:</span> {{officeStaff}}
+    </div>
+    <div class="info-row">
+      <span class="label">제 목:</span> 컨테이너 DAMAGE의 건
+    </div>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <!-- Container Details -->
+  <div class="section">
+    <div class="info-row">
+      <span class="label">Container No.:</span> {{containerNo}}
+    </div>
+    <div class="info-row">
+      <span class="label">B/L No.:</span> {{blNo}}
+    </div>
+    <div class="info-row">
+      <span class="label">차량 번호:</span> {{vehicleNo}}
+    </div>
+    <div class="info-row">
+      <span class="label">운송 기사:</span> {{driverName}}
+    </div>
+    <div class="info-row">
+      <span class="label">운송기사 연락처:</span> {{driverPhone}}
+    </div>
+    <div class="info-row">
+      <span class="label">화물 일자:</span> {{reportDate}}
+    </div>
+  </div>
+  
+  <!-- Content Section -->
+  <div class="content-section">
+    <div class="content-header">내 용</div>
+    
+    <div class="damage-type">파손 유형:</div>
+    
+    <div class="role-section">
+      <div class="role-title">[운송기사]</div>
+      <div class="role-content">{{driverDamage}}</div>
+    </div>
+    
+    <div class="role-section">
+      <div class="role-title">[현장 책임자]</div>
+      <div class="role-content">{{fieldDamage}}</div>
+    </div>
+    
+    <div class="role-section">
+      <div class="role-title">[사무실 책임자]</div>
+      <div class="role-content">{{officeDamage}}</div>
+    </div>
+  </div>
+  
+  <!-- Signature Section -->
+  <div class="signature-section">
+    <div class="signature-header">서 명</div>
+    
+    <div class="signature-grid">
+      <!-- Driver Signature -->
+      <div class="signature-item">
+        <div class="signature-label">운송기사: {{driverName}}</div>
+        {{driverSignatureHtml}}
+      </div>
+      
+      <!-- Field Signature -->
+      <div class="signature-item">
+        <div class="signature-label">현장 책임자: {{fieldStaff}}</div>
+        {{fieldSignatureHtml}}
+      </div>
+      
+      <!-- Office Signature -->
+      <div class="signature-item">
+        <div class="signature-label">사무실 책임자: {{officeStaff}}</div>
+        {{officeSignatureHtml}}
+      </div>
+      
+      <!-- Date -->
+      <div class="signature-item">
+        <div class="signature-label">출력일시:</div>
+        <div style="margin-top: 10px;">{{dateStr}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="footer">
+    본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.
+  </div>
+</body>
+</html>
