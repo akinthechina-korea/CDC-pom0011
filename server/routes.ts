@@ -792,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "완료된 보고서만 다운로드할 수 있습니다" });
       }
 
-      // PDF 생성 시점의 날짜/시간
+      // PDF 생성 시점의 날짜/시간 (한국 시간)
       const now = new Date();
       const dateStr = now.toLocaleString('ko-KR', {
         year: 'numeric',
@@ -800,7 +800,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
+        hour12: false,
+        timeZone: 'Asia/Seoul'
       });
 
       // Get last signatures from actionHistory
