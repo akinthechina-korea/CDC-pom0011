@@ -68,7 +68,7 @@ export default function AppContent() {
 
   // Driver login mutation
   const driverLoginMutation = useMutation({
-    mutationFn: async (data: { vehicleNo: string; password: string }) => {
+    mutationFn: async (data: { vehicleNo: string; driverName: string; password: string }) => {
       const res = await apiRequest('POST', '/api/auth/driver-login', data);
       return await res.json();
     },
@@ -416,7 +416,7 @@ export default function AppContent() {
     if (!driverSession) {
       return (
         <DriverLogin
-          onLogin={(vehicleNo, password) => driverLoginMutation.mutate({ vehicleNo, password })}
+          onLogin={(vehicleNo, driverName, password) => driverLoginMutation.mutate({ vehicleNo, driverName, password })}
           isLoading={driverLoginMutation.isPending}
           onBack={() => setCurrentRole('')}
         />

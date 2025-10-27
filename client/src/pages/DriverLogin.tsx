@@ -8,27 +8,28 @@ import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 
 interface DriverLoginProps {
-  onLogin: (vehicleNo: string, password: string) => void;
+  onLogin: (vehicleNo: string, driverName: string, password: string) => void;
   isLoading?: boolean;
   onBack: () => void;
 }
 
 export default function DriverLogin({ onLogin, isLoading = false, onBack }: DriverLoginProps) {
   const [vehicleNo, setVehicleNo] = useState<string>("");
+  const [driverName, setDriverName] = useState<string>("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
 
   const handleLogin = () => {
-    if (!vehicleNo || !password) {
+    if (!vehicleNo || !driverName || !password) {
       toast({
         title: "입력 오류",
-        description: "차량번호와 비밀번호를 모두 입력해주세요.",
+        description: "차량번호, 운송기사 이름, 연락처를 모두 입력해주세요.",
         variant: "destructive",
       });
       return;
     }
 
-    onLogin(vehicleNo, password);
+    onLogin(vehicleNo, driverName, password);
   };
 
   return (
@@ -43,17 +44,18 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
             <div>
               <CardTitle className="text-2xl">운송기사 로그인</CardTitle>
               <CardDescription className="mt-2">
-                차량번호와 비밀번호를 입력하세요
+                차량번호, 이름, 연락처를 입력하세요
               </CardDescription>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="vehicle">유저</Label>
+              <Label htmlFor="vehicle">차량번호</Label>
               <Input
                 id="vehicle"
                 type="text"
+                placeholder="예: 89하1234"
                 value={vehicleNo}
                 onChange={(e) => setVehicleNo(e.target.value)}
                 data-testid="input-vehicle"
@@ -61,10 +63,23 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="driverName">운송기사 이름</Label>
+              <Input
+                id="driverName"
+                type="text"
+                placeholder="예: 홍길동"
+                value={driverName}
+                onChange={(e) => setDriverName(e.target.value)}
+                data-testid="input-driverName"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">연락처</Label>
               <Input
                 id="password"
-                type="password"
+                type="text"
+                placeholder="예: 010-1234-5678"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
@@ -75,7 +90,7 @@ export default function DriverLogin({ onLogin, isLoading = false, onBack }: Driv
             <div className="space-y-3">
               <Button
                 onClick={handleLogin}
-                disabled={!vehicleNo || !password || isLoading}
+                disabled={!vehicleNo || !driverName || !password || isLoading}
                 className="w-full bg-driver hover:bg-driver/90 text-driver-foreground"
                 data-testid="button-login"
               >

@@ -116,8 +116,9 @@ export type Report = typeof reports.$inferSelect;
 
 // Driver login schema
 export const driverLoginSchema = z.object({
-  vehicleNo: z.string().min(1, "차량번호를 선택하세요"),
-  password: z.string().min(1, "비밀번호를 입력하세요"),
+  vehicleNo: z.string().min(1, "차량번호를 입력하세요"),
+  driverName: z.string().min(1, "운송기사 이름을 입력하세요"),
+  password: z.string().min(1, "연락처를 입력하세요"),
 });
 
 export type DriverLogin = z.infer<typeof driverLoginSchema>;
