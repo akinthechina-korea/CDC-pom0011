@@ -60,28 +60,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = driverLoginSchema.parse(req.body);
 
+      // Normalize password (remove all non-digit characters)
+      const normalizedPassword = validatedData.password.replace(/[^0-9]/g, '');
+      
       let vehicle = await storage.getVehicleByNumber(validatedData.vehicleNo);
       
       if (!vehicle) {
-        // 자동 회원가입: 새 차량/기사 등록
+        // 자동 회원가입: 새 차량/기사 등록 (전화번호는 숫자만 저장)
         const newVehicle = await storage.createVehicle({
           vehicleNo: validatedData.vehicleNo,
           driverName: validatedData.driverName,
-          driverPhone: validatedData.password,
+          driverPhone: normalizedPassword,
         });
         
         return res.json({
           success: true,
           vehicleNo: newVehicle.vehicleNo,
           driverName: newVehicle.driverName,
-          driverPhone: newVehicle.driverPhone,
         });
       }
 
-      // 기존 차량/기사 로그인
-      const correctPassword = vehicle.driverPhone.replace(/-/g, '');
+      // 기존 차량/기사 로그인 (저장된 전화번호도 숫자만 비교)
+      const storedPassword = vehicle.driverPhone.replace(/[^0-9]/g, '');
       
-      if (validatedData.password !== correctPassword) {
+      if (normalizedPassword !== storedPassword) {
         return res.status(401).json({ error: "비밀번호(연락처)가 일치하지 않습니다" });
       }
 
@@ -89,7 +91,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         vehicleNo: vehicle.vehicleNo,
         driverName: vehicle.driverName,
-        driverPhone: vehicle.driverPhone,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {

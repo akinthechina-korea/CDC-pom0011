@@ -70,7 +70,9 @@ export default function AppContent() {
   const driverLoginMutation = useMutation({
     mutationFn: async (data: { vehicleNo: string; driverName: string; password: string }) => {
       const res = await apiRequest('POST', '/api/auth/driver-login', data);
-      return await res.json();
+      const result = await res.json();
+      // Store password locally for session (not returned from server for security)
+      return { ...result, driverPhone: data.password };
     },
     onSuccess: (data: { vehicleNo: string; driverName: string; driverPhone: string }) => {
       setDriverSession({
