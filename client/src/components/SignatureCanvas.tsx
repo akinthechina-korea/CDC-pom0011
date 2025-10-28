@@ -104,9 +104,8 @@ export default function SignatureCanvas({ onSignatureChange, label = "서명" }:
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">{label}</label>
-        {hasSignature && (
+      {hasSignature && (
+        <div className="flex items-center justify-end">
           <Button
             type="button"
             variant="ghost"
@@ -117,8 +116,8 @@ export default function SignatureCanvas({ onSignatureChange, label = "서명" }:
             <X className="w-4 h-4 mr-1" />
             지우기
           </Button>
-        )}
-      </div>
+        </div>
+      )}
       <Card className="p-1 bg-white">
         <div ref={containerRef} className="w-full">
           <canvas
