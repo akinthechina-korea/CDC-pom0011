@@ -316,7 +316,7 @@ export default function OfficeDashboard({
                   <p className="font-semibold">{selectedReport.driverPhone}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="text-sm text-muted-foreground">입고일자</p>
                   <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
               </div>
@@ -498,7 +498,7 @@ export default function OfficeDashboard({
                   <p className="font-semibold">{selectedReport.driverPhone}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="text-sm text-muted-foreground">입고일자</p>
                   <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
               </div>

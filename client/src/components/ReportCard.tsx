@@ -58,7 +58,7 @@ export function ReportCard({ report, onClick, showAllDetails = false }: ReportCa
               {report.vehicleNo} · {report.driverName} · {report.driverPhone}
             </p>
             <p className="text-xs text-muted-foreground" data-testid={`text-date-${report.id}`}>
-              화물 일자: {report.reportDate}
+              입고일자: {report.reportDate}
             </p>
           </div>
           <StatusBadge status={report.status as any} />

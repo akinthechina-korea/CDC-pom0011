@@ -104,7 +104,7 @@ export const insertReportSchema = createInsertSchema(reports).omit({
   rejectedAt: true,
   actionHistory: true,
 }).extend({
-  reportDate: z.string().min(1, "화물 일자를 선택하세요"),
+  reportDate: z.string().min(1, "입고일자를 선택하세요"),
   containerNo: z.string().min(1, "컨테이너 번호를 입력하세요"),
   blNo: z.string().min(1, "B/L 번호를 입력하세요"),
   driverDamage: z.string().min(1, "파손 내용을 입력하세요"),

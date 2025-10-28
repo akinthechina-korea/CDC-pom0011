@@ -898,7 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       doc.font('NotoSansCJK').text(report.driverPhone || '');
       y += 16;
 
-      doc.font('NotoSansCJK-Bold').text('화물 일자: ', 50, y, { continued: true });
+      doc.font('NotoSansCJK-Bold').text('입고일자: ', 50, y, { continued: true });
       doc.font('NotoSansCJK').text(report.reportDate || '');
       y += 25;
 

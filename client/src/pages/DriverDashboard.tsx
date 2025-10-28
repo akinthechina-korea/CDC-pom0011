@@ -371,7 +371,7 @@ export default function DriverDashboard({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="reportDate">화물 일자 *</Label>
+              <Label htmlFor="reportDate">입고일자 *</Label>
               <Input
                 id="reportDate"
                 type="date"
@@ -509,7 +509,7 @@ export default function DriverDashboard({
                   <p className="font-semibold">{selectedReport.driverName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="text-sm text-muted-foreground">입고일자</p>
                   <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
               </div>
@@ -599,7 +599,7 @@ export default function DriverDashboard({
                   <p className="font-semibold">{selectedReport.driverPhone}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">화물 일자</p>
+                  <p className="text-sm text-muted-foreground">입고일자</p>
                   <p className="font-semibold">{selectedReport.reportDate}</p>
                 </div>
               </div>
