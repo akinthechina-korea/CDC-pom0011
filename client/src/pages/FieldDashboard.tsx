@@ -60,16 +60,20 @@ export default function FieldDashboard({
     return format(new Date(date), "yyyy-MM-dd HH:mm", { locale: ko });
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fieldDamage: string;
+    fieldSignature: string | null;
+    rejectionReason: string;
+  }>({
     fieldDamage: DEFAULT_FIELD_DAMAGE,
-    fieldSignature: "",
+    fieldSignature: null,
     rejectionReason: "",
   });
 
   const resetForm = () => {
     setFormData({
       fieldDamage: DEFAULT_FIELD_DAMAGE,
-      fieldSignature: "",
+      fieldSignature: null,
       rejectionReason: "",
     });
   };
@@ -649,13 +653,10 @@ export default function FieldDashboard({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="field-signature-rejected">서명 (이름) *</Label>
-                  <Input
-                    id="field-signature-rejected"
-                    placeholder="이름을 입력하세요"
-                    value={formData.fieldSignature}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fieldSignature: e.target.value }))}
-                    data-testid="input-field-signature-rejected"
+                  <Label>서명 *</Label>
+                  <SignatureCanvas
+                    onSignatureChange={(signature) => setFormData(prev => ({ ...prev, fieldSignature: signature }))}
+                    data-testid="signature-field-rejected"
                   />
                 </div>
               </div>
