@@ -12,6 +12,7 @@ import { FileText, ArrowLeft, CheckCircle, Download, XCircle, AlertCircle } from
 import { ReportCard } from "@/components/ReportCard";
 import SignatureCanvas from "@/components/SignatureCanvas";
 import { ImageViewer } from "@/components/ImageViewer";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, OfficeStaff } from "@shared/schema";
@@ -147,15 +148,18 @@ export default function OfficeDashboard({
                 </div>
               </div>
             </div>
-            <Button
-              onClick={onLogout}
-              variant="outline"
-              size="sm"
-              data-testid="button-logout"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              로그아웃
-            </Button>
+            <div className="flex items-center gap-2">
+              <NotificationBell userRole="office" />
+              <Button
+                onClick={onLogout}
+                variant="outline"
+                size="sm"
+                data-testid="button-logout"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                로그아웃
+              </Button>
+            </div>
           </div>
         </div>
       </header>

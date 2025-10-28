@@ -13,6 +13,7 @@ import { ReportCard } from "@/components/ReportCard";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import SignatureCanvas from "@/components/SignatureCanvas";
 import { ImageViewer } from "@/components/ImageViewer";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/Footer";
 import type { Report, Cargo } from "@shared/schema";
@@ -195,15 +196,18 @@ export default function DriverDashboard({
                 </div>
               </div>
             </div>
-            <Button
-              onClick={onLogout}
-              variant="outline"
-              size="sm"
-              data-testid="button-logout"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              로그아웃
-            </Button>
+            <div className="flex items-center gap-2">
+              <NotificationBell userRole="driver" />
+              <Button
+                onClick={onLogout}
+                variant="outline"
+                size="sm"
+                data-testid="button-logout"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                로그아웃
+              </Button>
+            </div>
           </div>
         </div>
       </header>
