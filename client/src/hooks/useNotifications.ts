@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { queryClient } from '@/lib/queryClient';
 
 export interface Notification {
   id: string;
@@ -72,6 +73,9 @@ export function useNotifications(userRole?: 'driver' | 'field' | 'office') {
 
           setNotifications(prev => [notification, ...prev]);
           setUnreadCount(prev => prev + 1);
+
+          // Automatically refresh reports data when notification is received
+          queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
         } catch (error) {
           console.error('Error parsing notification:', error);
         }
