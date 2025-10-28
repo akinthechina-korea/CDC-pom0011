@@ -1136,50 +1136,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.text('내 용', 50, y);
         y += 20;
 
-        // Driver content
+        // Driver section
         doc.fontSize(11).font('NotoSansCJK-Bold');
-        doc.text('운송기사:', 50, y);
-        y += 18;
+        doc.text('[운송기사]', 50, y);
+        y += 15;
+        doc.font('NotoSansCJK').fontSize(10);
+        const driverText = (report.driverDamage || '').substring(0, 200);
+        doc.text(driverText, 50, y, { width: 495, lineGap: 2 });
+        y += 45;
 
-        doc.fontSize(11).font('NotoSansCJK');
-        const driverText = report.driverDamage || '';
-        doc.text(driverText, 50, y, { width: pageWidth - 100, lineGap: 1.8 });
-        y += doc.heightOfString(driverText, { width: pageWidth - 100, lineGap: 1.8 }) + 15;
-
-        // Field content
+        // Field section
         doc.fontSize(11).font('NotoSansCJK-Bold');
-        doc.text('현장책임자:', 50, y);
-        y += 18;
+        doc.text('[현장 책임자]', 50, y);
+        y += 15;
+        doc.font('NotoSansCJK').fontSize(10);
+        const fieldText = (report.fieldDamage || '').substring(0, 200);
+        doc.text(fieldText, 50, y, { width: 495, lineGap: 2 });
+        y += 45;
 
-        doc.fontSize(11).font('NotoSansCJK');
-        const fieldText = report.fieldDamage || '';
-        doc.text(fieldText, 50, y, { width: pageWidth - 100, lineGap: 1.8 });
-        y += doc.heightOfString(fieldText, { width: pageWidth - 100, lineGap: 1.8 }) + 15;
-
-        // Office content
+        // Office section
         doc.fontSize(11).font('NotoSansCJK-Bold');
-        doc.text('사무실책임자:', 50, y);
-        y += 18;
+        doc.text('[사무실 책임자]', 50, y);
+        y += 15;
+        doc.font('NotoSansCJK').fontSize(10);
+        const officeText = (report.officeDamage || '').substring(0, 200);
+        doc.text(officeText, 50, y, { width: 495, lineGap: 2 });
+        y += 45;
 
-        doc.fontSize(11).font('NotoSansCJK');
-        const officeText = report.officeDamage || '';
-        doc.text(officeText, 50, y, { width: pageWidth - 100, lineGap: 1.8 });
-        y += doc.heightOfString(officeText, { width: pageWidth - 100, lineGap: 1.8 }) + 25;
+        // Check if we need a new page for signatures
+        if (y > pageHeight - 200) {
+          doc.addPage();
+          y = 40;
+        }
 
-        // Signatures section
-        const signatureY = pageHeight - 180;
-        const leftX = 50;
-        const centerX = (pageWidth / 2) - 60;
-        const rightX = pageWidth - 200;
-
+        // Signature section - 2x2 Grid
         doc.fontSize(13).font('NotoSansCJK-Bold');
-        doc.text('서 명', 0, signatureY - 25, { align: 'center', width: pageWidth });
+        doc.text('서 명', 50, y);
+        y += 20;
 
-        // Driver signature
+        const leftX = 50;
+        const rightX = 300;
+        let signatureY = y;
+
+        // Row 1: Driver (left) and Field (right)
         doc.fontSize(11).font('NotoSansCJK-Bold');
-        doc.text('운송기사: ', leftX, signatureY);
+        doc.text('운송기사: ', leftX, signatureY, { continued: true });
         doc.font('NotoSansCJK').text(report.driverName || '');
-
+        
         if (lastDriverSig) {
           try {
             const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
@@ -1191,36 +1194,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
         }
 
-        // Field signature
         doc.fontSize(11).font('NotoSansCJK-Bold');
-        doc.text('현장 책임자: ', centerX, signatureY);
+        doc.text('현장 책임자: ', rightX, signatureY, { continued: true });
         doc.font('NotoSansCJK').text(report.fieldStaff || '');
-
+        
         if (lastFieldSig) {
           try {
             const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-            doc.image(fieldSigBuffer, centerX, signatureY + 15, { width: 120, height: 30 });
-          } catch (err) {
-            doc.fontSize(9).text('서명 이미지', centerX, signatureY + 15);
-          }
-        } else {
-          doc.fontSize(9).text('서명 이미지', centerX, signatureY + 15);
-        }
-
-        // Office signature
-        doc.fontSize(11).font('NotoSansCJK-Bold');
-        doc.text('사무실 책임자: ', rightX, signatureY);
-        doc.font('NotoSansCJK').text(report.officeStaff || '');
-
-        if (lastOfficeSig) {
-          try {
-            const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-            doc.image(officeSigBuffer, rightX, signatureY + 15, { width: 120, height: 30 });
+            doc.image(fieldSigBuffer, rightX, signatureY + 15, { width: 120, height: 30 });
           } catch (err) {
             doc.fontSize(9).text('서명 이미지', rightX, signatureY + 15);
           }
         } else {
           doc.fontSize(9).text('서명 이미지', rightX, signatureY + 15);
+        }
+
+        signatureY += 60;
+
+        // Row 2: Office (left) and Date (right)
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('사무실 책임자: ', leftX, signatureY, { continued: true });
+        doc.font('NotoSansCJK').text(report.officeStaff || '');
+        
+        if (lastOfficeSig) {
+          try {
+            const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+            doc.image(officeSigBuffer, leftX, signatureY + 15, { width: 120, height: 30 });
+          } catch (err) {
+            doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+          }
+        } else {
+          doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
         }
 
         doc.fontSize(11).font('NotoSansCJK-Bold');
@@ -1244,11 +1248,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (report.damagePhotos && report.damagePhotos.length > 0) {
         for (let i = 0; i < report.damagePhotos.length; i++) {
           const photoPath = report.damagePhotos[i];
-          const fullPath = path.join(process.cwd(), photoPath);
+          // Convert /assets/ to attached_assets/
+          const relativePath = photoPath.replace(/^\/assets\//, 'attached_assets/');
+          const fullPath = path.join(process.cwd(), relativePath);
           
           if (fs.existsSync(fullPath)) {
             const ext = path.extname(photoPath);
             archive.file(fullPath, { name: `사진_${i + 1}${ext}` });
+          } else {
+            console.log(`Photo not found: ${fullPath}`);
           }
         }
       }
