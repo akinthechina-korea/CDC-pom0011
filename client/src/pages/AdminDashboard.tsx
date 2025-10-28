@@ -174,8 +174,8 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
 
     switch (type) {
       case 'cargo':
-        headers = ['containerNo', 'blNo', 'date'];
-        sampleRow = ['TCLU8239466', 'CHL20251001', '2025-10-01'];
+        headers = ['blNo', 'containerNo', 'date'];
+        sampleRow = ['CHL20251001', 'TCLU8239466', '2025-10-01'];
         break;
       case 'vehicles':
         headers = ['vehicleNo', 'driverName', 'driverPhone'];
@@ -266,8 +266,8 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
       switch (activeTab) {
         case 'cargo':
           if (cells.length >= 3) {
-            newRow.containerNo = cells[0]?.trim() || '';
-            newRow.blNo = cells[1]?.trim() || '';
+            newRow.blNo = cells[0]?.trim() || '';
+            newRow.containerNo = cells[1]?.trim() || '';
             newRow.date = cells[2]?.trim() || '';
             newRows.push(newRow);
           }
@@ -507,8 +507,8 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
           <TableRow>
             {type === 'cargo' && (
               <>
-                <TableHead>컨테이너 번호</TableHead>
                 <TableHead>B/L 번호</TableHead>
+                <TableHead>컨테이너 번호</TableHead>
                 <TableHead>화물 일자</TableHead>
               </>
             )}
@@ -532,8 +532,8 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
             <TableRow key={index}>
               {type === 'cargo' && (
                 <>
-                  <TableCell>{item.containerNo}</TableCell>
                   <TableCell>{item.blNo}</TableCell>
+                  <TableCell>{item.containerNo}</TableCell>
                   <TableCell>{item.date}</TableCell>
                 </>
               )}
