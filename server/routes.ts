@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { 
   insertReportSchema, 
@@ -20,6 +21,26 @@ import path from "path";
 import fs from "fs";
 import PDFDocument from "pdfkit";
 import archiver from "archiver";
+
+// WebSocket broadcast helper
+let wss: WebSocketServer;
+
+function broadcastNotification(event: {
+  type: 'report_submitted' | 'report_approved' | 'report_rejected' | 'report_completed';
+  reportId: number;
+  containerNo: string;
+  status: string;
+  targetRole?: 'driver' | 'field' | 'office';
+}) {
+  if (!wss) return;
+  
+  const message = JSON.stringify(event);
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 // Configure multer for file upload
 const uploadDir = path.join(process.cwd(), "attached_assets", "damage_photos");
@@ -545,6 +566,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actionHistory: [historyItem],
       });
 
+      // Broadcast notification to field staff
+      if (updatedReport) {
+        broadcastNotification({
+          type: 'report_submitted',
+          reportId: Number(updatedReport.id),
+          containerNo: updatedReport.containerNo,
+          status: 'driver_submitted',
+          targetRole: 'field',
+        });
+      }
+
       res.status(201).json(updatedReport);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -603,6 +635,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedReport = await storage.updateReport(req.params.id, updateData);
 
+      // Broadcast notification to field staff
+      if (updatedReport) {
+        broadcastNotification({
+          type: 'report_submitted',
+          reportId: Number(updatedReport.id),
+          containerNo: updatedReport.containerNo,
+          status: 'driver_submitted',
+          targetRole: 'field',
+        });
+      }
+
       res.json(updatedReport);
     } catch (error) {
       res.status(500).json({ error: "보고서 재제출 실패" });
@@ -645,6 +688,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           actionHistory: [...currentHistory, historyItem],
         });
 
+        // Broadcast notification to driver
+        if (updatedReport) {
+          broadcastNotification({
+            type: 'report_rejected',
+            reportId: Number(updatedReport.id),
+            containerNo: updatedReport.containerNo,
+            status: 'rejected',
+            targetRole: 'driver',
+          });
+        }
+
         return res.json(updatedReport);
       }
 
@@ -674,6 +728,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fieldSubmittedAt: new Date(),
           actionHistory: [...currentHistory, historyItem],
         });
+
+        // Broadcast notification to office staff
+        if (updatedReport) {
+          broadcastNotification({
+            type: 'report_approved',
+            reportId: Number(updatedReport.id),
+            containerNo: updatedReport.containerNo,
+            status: 'field_submitted',
+            targetRole: 'office',
+          });
+        }
 
         return res.json(updatedReport);
       }
@@ -728,6 +793,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actionHistory: [...currentHistory, historyItem],
       });
 
+      // Broadcast notification - report completed
+      if (updatedReport) {
+        broadcastNotification({
+          type: 'report_completed',
+          reportId: Number(updatedReport.id),
+          containerNo: updatedReport.containerNo,
+          status: 'completed',
+        });
+      }
+
       res.json(updatedReport);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -774,6 +849,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rejectedAt: new Date(),
         actionHistory: [...currentHistory, historyItem],
       });
+
+      // Broadcast notification to field staff (office rejected, back to field)
+      if (updatedReport) {
+        broadcastNotification({
+          type: 'report_rejected',
+          reportId: Number(updatedReport.id),
+          containerNo: updatedReport.containerNo,
+          status: 'driver_submitted',
+          targetRole: 'field',
+        });
+      }
 
       res.json(updatedReport);
     } catch (error) {
@@ -1245,6 +1331,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // Initialize WebSocket server with noServer option to avoid conflicts with Vite HMR
+  wss = new WebSocketServer({ noServer: true });
+
+  httpServer.on('upgrade', (request, socket, head) => {
+    // Only handle WebSocket connections on /ws path
+    if (request.url === '/ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    }
+  });
+
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+  });
 
   return httpServer;
 }
