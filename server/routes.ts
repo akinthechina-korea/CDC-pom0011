@@ -19,6 +19,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import PDFDocument from "pdfkit";
+import archiver from "archiver";
 
 // Configure multer for file upload
 const uploadDir = path.join(process.cwd(), "attached_assets", "damage_photos");
@@ -1010,6 +1011,253 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error('PDF generation error:', error);
+      res.status(500).json({ error: "파일 다운로드 실패" });
+    }
+  });
+
+  // ZIP download endpoint (PDF + all photos) - for office staff only
+  app.get("/api/reports/:id/download-with-photos", async (req, res) => {
+    try {
+      const report = await storage.getReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ error: "보고서를 찾을 수 없습니다" });
+      }
+
+      if (report.status !== 'completed') {
+        return res.status(400).json({ error: "완료된 보고서만 다운로드할 수 있습니다" });
+      }
+
+      // Create ZIP archive
+      const archive = archiver('zip', {
+        zlib: { level: 9 } // Maximum compression
+      });
+
+      // Set response headers
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="DAMAGE_${report.containerNo}.zip"`);
+
+      // Pipe archive to response
+      archive.pipe(res);
+
+      // Generate PDF in memory
+      const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        
+        // PDF generation logic (same as download endpoint)
+        const now = new Date();
+        const kstTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const dateStr = kstTime.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+
+        const actionHistory = report.actionHistory || [];
+        const lastDriverSig = actionHistory.filter(a => a.actorRole === 'driver' && a.signature).pop()?.signature;
+        const lastFieldSig = actionHistory.filter(a => a.actorRole === 'field' && a.signature).pop()?.signature;
+        const lastOfficeSig = actionHistory.filter(a => a.actorRole === 'office' && a.signature).pop()?.signature;
+
+        const doc = new PDFDocument({
+          size: 'A4',
+          margin: 0,
+          autoFirstPage: false
+        });
+
+        const fontPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansCJK-Regular.otf');
+        const fontBoldPath = path.join(process.cwd(), 'attached_assets', 'fonts', 'NotoSansCJK-Bold.otf');
+        doc.registerFont('NotoSansCJK', fontPath);
+        doc.registerFont('NotoSansCJK-Bold', fontBoldPath);
+
+        doc.on('data', chunk => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        doc.addPage();
+
+        const pageWidth = 595;
+        const pageHeight = 842;
+        let y = 40;
+
+        // Header
+        doc.fontSize(20).font('NotoSansCJK-Bold');
+        doc.text('(株)天 一 國 際 物 流', 0, y, { align: 'center', width: pageWidth });
+        y += 30;
+
+        doc.fontSize(10).font('NotoSansCJK');
+        doc.text('수입에서 통관하여 배송까지 천일국제물류에서 책임집니다', 0, y, { align: 'center', width: pageWidth });
+        y += 18;
+
+        doc.fontSize(9);
+        doc.text('경기도 평택시 포승읍 평택항로 95', 0, y, { align: 'center', width: pageWidth });
+        y += 14;
+
+        doc.text('TEL: 031-683-7040 | FAX: 031-683-7044', 0, y, { align: 'center', width: pageWidth });
+        y += 14;
+
+        doc.text('www.chunilkor.co.kr', 0, y, { align: 'center', width: pageWidth });
+        y += 30;
+
+        // Title
+        doc.fontSize(16).font('NotoSansCJK-Bold');
+        doc.text('컨테이너 DAMAGE 확인서', 0, y, { align: 'center', width: pageWidth });
+        y += 35;
+
+        // Report info
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('컨테이너 번호: ', 50, y, { continued: true });
+        doc.font('NotoSansCJK').text(report.containerNo || '');
+        y += 16;
+
+        doc.font('NotoSansCJK-Bold').text('B/L 번호: ', 50, y, { continued: true });
+        doc.font('NotoSansCJK').text(report.blNo || '');
+        y += 16;
+
+        doc.font('NotoSansCJK-Bold').text('차량번호: ', 50, y, { continued: true });
+        doc.font('NotoSansCJK').text(report.vehicleNo || '');
+        y += 16;
+
+        doc.font('NotoSansCJK-Bold').text('운송기사: ', 50, y, { continued: true });
+        doc.font('NotoSansCJK').text(report.driverName || '');
+        y += 16;
+
+        doc.font('NotoSansCJK-Bold').text('운송기사 연락처: ', 50, y, { continued: true });
+        doc.font('NotoSansCJK').text(report.driverPhone || '');
+        y += 16;
+
+        doc.font('NotoSansCJK-Bold').text('입고일자: ', 50, y, { continued: true });
+        doc.font('NotoSansCJK').text(report.reportDate || '');
+        y += 25;
+
+        // Content section
+        doc.fontSize(13).font('NotoSansCJK-Bold');
+        doc.text('내 용', 50, y);
+        y += 20;
+
+        // Driver content
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('운송기사:', 50, y);
+        y += 18;
+
+        doc.fontSize(11).font('NotoSansCJK');
+        const driverText = report.driverDamage || '';
+        doc.text(driverText, 50, y, { width: pageWidth - 100, lineGap: 1.8 });
+        y += doc.heightOfString(driverText, { width: pageWidth - 100, lineGap: 1.8 }) + 15;
+
+        // Field content
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('현장책임자:', 50, y);
+        y += 18;
+
+        doc.fontSize(11).font('NotoSansCJK');
+        const fieldText = report.fieldDamage || '';
+        doc.text(fieldText, 50, y, { width: pageWidth - 100, lineGap: 1.8 });
+        y += doc.heightOfString(fieldText, { width: pageWidth - 100, lineGap: 1.8 }) + 15;
+
+        // Office content
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('사무실책임자:', 50, y);
+        y += 18;
+
+        doc.fontSize(11).font('NotoSansCJK');
+        const officeText = report.officeDamage || '';
+        doc.text(officeText, 50, y, { width: pageWidth - 100, lineGap: 1.8 });
+        y += doc.heightOfString(officeText, { width: pageWidth - 100, lineGap: 1.8 }) + 25;
+
+        // Signatures section
+        const signatureY = pageHeight - 180;
+        const leftX = 50;
+        const centerX = (pageWidth / 2) - 60;
+        const rightX = pageWidth - 200;
+
+        doc.fontSize(13).font('NotoSansCJK-Bold');
+        doc.text('서 명', 0, signatureY - 25, { align: 'center', width: pageWidth });
+
+        // Driver signature
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('운송기사: ', leftX, signatureY);
+        doc.font('NotoSansCJK').text(report.driverName || '');
+
+        if (lastDriverSig) {
+          try {
+            const driverSigBuffer = Buffer.from(lastDriverSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+            doc.image(driverSigBuffer, leftX, signatureY + 15, { width: 120, height: 30 });
+          } catch (err) {
+            doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+          }
+        } else {
+          doc.fontSize(9).text('서명 이미지', leftX, signatureY + 15);
+        }
+
+        // Field signature
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('현장 책임자: ', centerX, signatureY);
+        doc.font('NotoSansCJK').text(report.fieldStaff || '');
+
+        if (lastFieldSig) {
+          try {
+            const fieldSigBuffer = Buffer.from(lastFieldSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+            doc.image(fieldSigBuffer, centerX, signatureY + 15, { width: 120, height: 30 });
+          } catch (err) {
+            doc.fontSize(9).text('서명 이미지', centerX, signatureY + 15);
+          }
+        } else {
+          doc.fontSize(9).text('서명 이미지', centerX, signatureY + 15);
+        }
+
+        // Office signature
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('사무실 책임자: ', rightX, signatureY);
+        doc.font('NotoSansCJK').text(report.officeStaff || '');
+
+        if (lastOfficeSig) {
+          try {
+            const officeSigBuffer = Buffer.from(lastOfficeSig.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+            doc.image(officeSigBuffer, rightX, signatureY + 15, { width: 120, height: 30 });
+          } catch (err) {
+            doc.fontSize(9).text('서명 이미지', rightX, signatureY + 15);
+          }
+        } else {
+          doc.fontSize(9).text('서명 이미지', rightX, signatureY + 15);
+        }
+
+        doc.fontSize(11).font('NotoSansCJK-Bold');
+        doc.text('출력일시:', rightX, signatureY);
+        doc.font('NotoSansCJK').text(dateStr, rightX, signatureY + 15);
+
+        // Footer
+        const footerY = pageHeight - 50;
+        doc.moveTo(50, footerY).lineTo(pageWidth - 50, footerY).stroke();
+        doc.fontSize(8).font('NotoSansCJK');
+        doc.text('본 확인서는 당사 천일국제물류에서 발행한 비 공식 문서이며, 단지 확인용으로 사용합니다.', 
+                 0, footerY + 10, { align: 'center', width: pageWidth });
+
+        doc.end();
+      });
+
+      // Add PDF to archive
+      archive.append(pdfBuffer, { name: `DAMAGE_${report.containerNo}.pdf` });
+
+      // Add damage photos if they exist
+      if (report.damagePhotos && report.damagePhotos.length > 0) {
+        for (let i = 0; i < report.damagePhotos.length; i++) {
+          const photoPath = report.damagePhotos[i];
+          const fullPath = path.join(process.cwd(), photoPath);
+          
+          if (fs.existsSync(fullPath)) {
+            const ext = path.extname(photoPath);
+            archive.file(fullPath, { name: `사진_${i + 1}${ext}` });
+          }
+        }
+      }
+
+      // Finalize archive
+      await archive.finalize();
+
+    } catch (error) {
+      console.error('ZIP download error:', error);
       res.status(500).json({ error: "파일 다운로드 실패" });
     }
   });

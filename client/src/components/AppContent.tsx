@@ -374,7 +374,7 @@ export default function AppContent() {
     },
   });
 
-  // Download report
+  // Download report (PDF only - for driver and field staff)
   const handleDownloadReport = async (reportId: string) => {
     try {
       const response = await fetch(`/api/reports/${reportId}/download`);
@@ -399,6 +399,41 @@ export default function AppContent() {
       toast({
         title: "다운로드 완료",
         description: "확인서가 다운로드되었습니다.",
+      });
+    } catch (error) {
+      toast({
+        title: "다운로드 실패",
+        description: "파일 다운로드 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Download report with photos (ZIP - for office staff only)
+  const handleDownloadReportWithPhotos = async (reportId: string) => {
+    try {
+      const response = await fetch(`/api/reports/${reportId}/download-with-photos`);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Try to get filename from content-disposition header
+      const contentDisposition = response.headers.get('content-disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `DAMAGE_REPORT_${reportId}.zip`;
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "다운로드 완료",
+        description: "확인서 및 사진이 ZIP 파일로 다운로드되었습니다.",
       });
     } catch (error) {
       toast({
@@ -485,7 +520,7 @@ export default function AppContent() {
         onLogout={handleOfficeLogout}
         onApprove={(reportId, data) => officeApproveMutation.mutate({ reportId, data })}
         onReject={(reportId, reason, officeStaff) => officeRejectMutation.mutate({ reportId, reason, officeStaff })}
-        onDownloadReport={handleDownloadReport}
+        onDownloadReport={handleDownloadReportWithPhotos}
       />
     );
   }
