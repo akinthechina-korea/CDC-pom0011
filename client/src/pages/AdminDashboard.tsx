@@ -371,8 +371,8 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
             <TableRow>
               {type === 'cargo' && (
                 <>
-                  <TableHead>컨테이너 번호</TableHead>
                   <TableHead>B/L 번호</TableHead>
+                  <TableHead>컨테이너 번호</TableHead>
                   <TableHead>화물 일자</TableHead>
                   <TableHead className="w-20">삭제</TableHead>
                 </>
@@ -402,16 +402,16 @@ export default function AdminDashboard({ adminName, adminPhone, onLogout }: Admi
                     <TableCell>
                       <input
                         type="text"
-                        value={item.containerNo || ''}
-                        onChange={(e) => handleCellChange(index, 'containerNo', e.target.value)}
+                        value={item.blNo || ''}
+                        onChange={(e) => handleCellChange(index, 'blNo', e.target.value)}
                         className="w-full px-2 py-1 border rounded"
                       />
                     </TableCell>
                     <TableCell>
                       <input
                         type="text"
-                        value={item.blNo || ''}
-                        onChange={(e) => handleCellChange(index, 'blNo', e.target.value)}
+                        value={item.containerNo || ''}
+                        onChange={(e) => handleCellChange(index, 'containerNo', e.target.value)}
                         className="w-full px-2 py-1 border rounded"
                       />
                     </TableCell>
