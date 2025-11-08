@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.local
+.DS_Store
+*.log
+dist
+.vscode
+.idea
+attached_assets/damage_photos/*
+!attached_assets/damage_photos/.gitkeep
+

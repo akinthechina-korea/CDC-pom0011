@@ -1,6 +1,6 @@
 // Seed script for initial master data
 import { db } from "./db";
-import { cargo, vehicles, fieldStaff, officeStaff } from "@shared/schema";
+import { cargo, vehicles, fieldStaff, officeStaff, adminStaff } from "@shared/schema";
 
 async function seed() {
   console.log("🌱 Seeding database...");
@@ -44,6 +44,12 @@ async function seed() {
       { name: '김민하', phone: '010-844-9931' },
     ]);
     console.log("✓ Seeded office staff data");
+
+    // Seed Admin Staff
+    await db.insert(adminStaff).values([
+      { name: '천일요비', phone: '010-1111-1111' },
+    ]);
+    console.log("✓ Seeded admin staff data");
 
     console.log("✅ Database seeded successfully!");
   } catch (error) {
