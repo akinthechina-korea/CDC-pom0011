@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: cdc-pom0011
+    env: node
+    plan: free
+    region: singapore
+    buildCommand: npm run db:push && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # DATABASE_URL은 데이터베이스 서비스와 자동으로 연결됩니다
+      # Render 대시보드에서 수동으로 설정할 수도 있습니다
+    healthCheckPath: /
+    # 커스텀 도메인은 Render 대시보드에서 설정하세요
+
+databases:
+  - name: cdc-pom0011-db
+    plan: free
+    region: singapore
+    databaseName: cdc_pom0011
+    user: cdc_pom0011_user
+
