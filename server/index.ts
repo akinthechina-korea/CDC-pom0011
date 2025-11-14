@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { ensureDatabaseInitialized } from "./init-database";
+import { startKeepAlive } from "./keep-alive";
 import path from "path";
 
 const app = express();
@@ -88,5 +89,9 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    
+    // Keep-Alive 시작 (Render 무료 플랜 슬리프 모드 방지)
+    // Render는 자동으로 RENDER_EXTERNAL_URL 환경 변수를 설정합니다
+    startKeepAlive();
   });
 })();
