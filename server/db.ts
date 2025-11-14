@@ -21,8 +21,18 @@ if (dbUrlParts.length === 2) {
   console.log(`📊 데이터베이스 연결 정보: ...@${hostPart}`);
 }
 
+// DATABASE_URL이 내부 URL인 경우 외부 URL로 변환
+let databaseUrl = process.env.DATABASE_URL || '';
+if (databaseUrl && !databaseUrl.includes('.render.com') && databaseUrl.includes('@dpg-')) {
+  // 내부 URL을 외부 URL로 변환
+  // 예: postgresql://user:pass@dpg-xxxx-a/db
+  // -> postgresql://user:pass@dpg-xxxx-a.singapore-postgres.render.com/db
+  databaseUrl = databaseUrl.replace(/@(dpg-[^/]+)\//, '@$1.singapore-postgres.render.com/');
+  console.log('⚠️ 내부 DATABASE_URL을 외부 URL로 변환했습니다.');
+}
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   ssl: { rejectUnauthorized: false },
 });
 
