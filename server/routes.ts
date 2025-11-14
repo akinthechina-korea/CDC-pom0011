@@ -62,13 +62,26 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedTypes = /jpeg|jpg|png|webp|heic|heif/;
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/heic',
+      'image/heif',
+      'image/x-heic',
+      'image/x-heif',
+    ];
     
-    if (mimetype && extname) {
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.includes(file.mimetype?.toLowerCase() || '');
+    
+    // 안드로이드 호환성: mimetype이 비어있거나 일반적인 경우에도 확장자로 판단
+    if (extname || mimetype) {
       return cb(null, true);
     } else {
+      console.error(`파일 업로드 거부: ${file.originalname}, mimetype: ${file.mimetype}`);
       cb(new Error('이미지 파일만 업로드 가능합니다 (JPG, PNG, WEBP)'));
     }
   }
@@ -517,17 +530,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/upload/damage-photo", upload.single('photo'), async (req, res) => {
     try {
       if (!req.file) {
+        console.error('파일 업로드 실패: req.file이 없습니다');
+        console.error('req.headers:', req.headers['content-type']);
         return res.status(400).json({ error: "사진 파일이 없습니다" });
       }
+      
+      console.log(`파일 업로드 성공: ${req.file.originalname} -> ${req.file.filename}`);
+      console.log(`파일 정보: mimetype=${req.file.mimetype}, size=${req.file.size}bytes`);
       
       // Return the relative path from the attached_assets directory
       const photoUrl = `/assets/damage_photos/${req.file.filename}`;
       res.json({ url: photoUrl });
     } catch (error: any) {
+      console.error('파일 업로드 오류:', error);
+      console.error('요청 정보:', {
+        headers: req.headers,
+        body: req.body,
+        file: req.file
+      });
+      
       if (error.message) {
         return res.status(400).json({ error: error.message });
       }
-      res.status(500).json({ error: "사진 업로드 실패" });
+      res.status(500).json({ error: "사진 업로드 실패", details: error?.message || String(error) });
     }
   });
 

@@ -32,20 +32,34 @@ export function PhotoUploader({ photos, onChange, maxPhotos = 5 }: PhotoUploader
 
     try {
       for (const file of files) {
+        // 안드로이드 호환성: 파일 정보 로깅
+        console.log(`파일 업로드 시도: ${file.name}, type: ${file.type}, size: ${file.size}bytes`);
+        
         const formData = new FormData();
         formData.append('photo', file);
 
+        // 안드로이드 호환성: Content-Type 헤더를 명시하지 않음 (FormData가 자동 설정)
         const response = await fetch('/api/upload/damage-photo', {
           method: 'POST',
           body: formData,
+          // Content-Type 헤더를 설정하지 않음 - 브라우저가 자동으로 multipart/form-data로 설정
         });
 
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || '업로드 실패');
+          let errorMessage = '업로드 실패';
+          try {
+            const error = await response.json();
+            errorMessage = error.error || error.details || errorMessage;
+            console.error('업로드 실패 응답:', error);
+          } catch (e) {
+            console.error('업로드 실패 (응답 파싱 오류):', response.status, response.statusText);
+            errorMessage = `서버 오류: ${response.status} ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
+        console.log(`파일 업로드 성공: ${file.name} -> ${data.url}`);
         uploadedUrls.push(data.url);
       }
 
@@ -90,8 +104,9 @@ export function PhotoUploader({ photos, onChange, maxPhotos = 5 }: PhotoUploader
         <input
           id="photo-input"
           type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
           multiple
+          capture="environment"
           className="hidden"
           onChange={handleFileSelect}
           data-testid="input-photo-file"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RoleSelection from "@/pages/RoleSelection";
 import DriverLogin from "@/pages/DriverLogin";
 import FieldLogin from "@/pages/FieldLogin";
@@ -41,12 +41,74 @@ interface AdminSession {
 }
 
 export default function AppContent() {
-  const [currentRole, setCurrentRole] = useState<Role>('');
-  const [driverSession, setDriverSession] = useState<DriverSession | null>(null);
-  const [fieldSession, setFieldSession] = useState<FieldSession | null>(null);
-  const [officeSession, setOfficeSession] = useState<OfficeSession | null>(null);
-  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
+  // 세션 유지: localStorage에서 복원
+  const [currentRole, setCurrentRole] = useState<Role>(() => {
+    const saved = localStorage.getItem('currentRole');
+    return (saved as Role) || '';
+  });
+  
+  const [driverSession, setDriverSession] = useState<DriverSession | null>(() => {
+    const saved = localStorage.getItem('driverSession');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  const [fieldSession, setFieldSession] = useState<FieldSession | null>(() => {
+    const saved = localStorage.getItem('fieldSession');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  const [officeSession, setOfficeSession] = useState<OfficeSession | null>(() => {
+    const saved = localStorage.getItem('officeSession');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(() => {
+    const saved = localStorage.getItem('adminSession');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
   const { toast } = useToast();
+
+  // localStorage 동기화: 세션이 변경될 때마다 저장
+  useEffect(() => {
+    if (currentRole) {
+      localStorage.setItem('currentRole', currentRole);
+    } else {
+      localStorage.removeItem('currentRole');
+    }
+  }, [currentRole]);
+
+  useEffect(() => {
+    if (driverSession) {
+      localStorage.setItem('driverSession', JSON.stringify(driverSession));
+    } else {
+      localStorage.removeItem('driverSession');
+    }
+  }, [driverSession]);
+
+  useEffect(() => {
+    if (fieldSession) {
+      localStorage.setItem('fieldSession', JSON.stringify(fieldSession));
+    } else {
+      localStorage.removeItem('fieldSession');
+    }
+  }, [fieldSession]);
+
+  useEffect(() => {
+    if (officeSession) {
+      localStorage.setItem('officeSession', JSON.stringify(officeSession));
+    } else {
+      localStorage.removeItem('officeSession');
+    }
+  }, [officeSession]);
+
+  useEffect(() => {
+    if (adminSession) {
+      localStorage.setItem('adminSession', JSON.stringify(adminSession));
+    } else {
+      localStorage.removeItem('adminSession');
+    }
+  }, [adminSession]);
 
   // Fetch master data
   const { data: cargoList = [] } = useQuery<Cargo[]>({
@@ -98,6 +160,8 @@ export default function AppContent() {
   const handleDriverLogout = () => {
     setDriverSession(null);
     setCurrentRole('');
+    localStorage.removeItem('driverSession');
+    localStorage.removeItem('currentRole');
   };
 
   // Field login mutation
@@ -130,6 +194,8 @@ export default function AppContent() {
   const handleFieldLogout = () => {
     setFieldSession(null);
     setCurrentRole('');
+    localStorage.removeItem('fieldSession');
+    localStorage.removeItem('currentRole');
   };
 
   // Office login mutation
@@ -162,6 +228,8 @@ export default function AppContent() {
   const handleOfficeLogout = () => {
     setOfficeSession(null);
     setCurrentRole('');
+    localStorage.removeItem('officeSession');
+    localStorage.removeItem('currentRole');
   };
 
   // Admin login mutation
@@ -194,6 +262,8 @@ export default function AppContent() {
   const handleAdminLogout = () => {
     setAdminSession(null);
     setCurrentRole('');
+    localStorage.removeItem('adminSession');
+    localStorage.removeItem('currentRole');
   };
 
   // Create report mutation
