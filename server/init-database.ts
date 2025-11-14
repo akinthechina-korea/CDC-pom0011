@@ -14,6 +14,16 @@ export async function ensureDatabaseInitialized(): Promise<void> {
   initPromise = (async () => {
     try {
       console.log("데이터베이스 초기화 확인 중...");
+      
+      // DATABASE_URL 확인
+      if (!process.env.DATABASE_URL) {
+        console.error("❌ DATABASE_URL 환경 변수가 설정되지 않았습니다!");
+        console.error("Render 대시보드에서 DATABASE_URL을 확인하세요.");
+        return;
+      }
+      
+      console.log("✅ DATABASE_URL이 설정되어 있습니다.");
+      console.log(`DATABASE_URL 시작: ${process.env.DATABASE_URL.substring(0, 20)}...`);
 
       // 테이블 존재 확인
       const checkTable = async (tableName: string): Promise<boolean> => {
