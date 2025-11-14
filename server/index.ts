@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { ensureDatabaseInitialized } from "./init-database";
 import path from "path";
 
 const app = express();
@@ -52,6 +53,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // 프로덕션 환경에서 데이터베이스 초기화 확인
+  if (process.env.NODE_ENV === "production") {
+    try {
+      await ensureDatabaseInitialized();
+    } catch (error) {
+      log(`⚠️ 데이터베이스 초기화 경고: ${error}`);
+    }
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
