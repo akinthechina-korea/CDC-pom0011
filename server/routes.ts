@@ -154,14 +154,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffName: staff.name,
         staffPhone: staff.phone,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           error: "입력 데이터 오류", 
           details: error.errors 
         });
       }
-      res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
+      console.error("Field staff login error:", error);
+      res.status(500).json({ 
+        error: "로그인 처리 중 오류가 발생했습니다",
+        details: error?.message || String(error)
+      });
     }
   });
 
@@ -194,14 +198,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffName: staff.name,
         staffPhone: staff.phone,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           error: "입력 데이터 오류", 
           details: error.errors 
         });
       }
-      res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
+      console.error("Office staff login error:", error);
+      res.status(500).json({ 
+        error: "로그인 처리 중 오류가 발생했습니다",
+        details: error?.message || String(error)
+      });
     }
   });
 
@@ -234,14 +242,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffName: staff.name,
         staffPhone: staff.phone,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           error: "입력 데이터 오류", 
           details: error.errors 
         });
       }
-      res.status(500).json({ error: "로그인 처리 중 오류가 발생했습니다" });
+      console.error("Admin login error:", error);
+      res.status(500).json({ 
+        error: "로그인 처리 중 오류가 발생했습니다",
+        details: error?.message || String(error)
+      });
     }
   });
 

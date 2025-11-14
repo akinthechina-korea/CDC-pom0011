@@ -130,7 +130,7 @@ export async function ensureDatabaseInitialized(): Promise<void> {
 
       console.log("✅ 모든 테이블이 존재합니다.");
 
-      // 초기 사용자 데이터 확인 및 추가
+      // 초기 사용자 데이터 확인 및 추가 (seed.ts의 실제 데이터 사용)
       const hasFieldStaff = (await db.select().from(fieldStaff).limit(1)).length > 0;
       const hasOfficeStaff = (await db.select().from(officeStaff).limit(1)).length > 0;
       const hasAdminStaff = (await db.select().from(adminStaff).limit(1)).length > 0;
@@ -138,40 +138,41 @@ export async function ensureDatabaseInitialized(): Promise<void> {
       if (!hasFieldStaff || !hasOfficeStaff || !hasAdminStaff) {
         console.log("초기 사용자 데이터 추가 중...");
 
-        // Field Staff 추가
+        // Field Staff 추가 (seed.ts의 실제 데이터)
         if (!hasFieldStaff) {
           try {
-            await db.insert(fieldStaff).values({
-              name: "테스트담당자",
-              phone: "010-1234-5678"
-            }).onConflictDoNothing();
-            console.log("✅ Field Staff 추가됨");
+            await db.insert(fieldStaff).values([
+              { name: '김도훈', phone: '010-2384-1156' },
+              { name: '장지윤', phone: '010-5529-6681' },
+              { name: '정현준', phone: '010-7132-2248' },
+            ]).onConflictDoNothing();
+            console.log("✅ Field Staff 추가됨: 김도훈, 장지윤, 정현준");
           } catch (error: any) {
             console.error("⚠️ Field Staff 추가 실패:", error.message);
           }
         }
 
-        // Office Staff 추가
+        // Office Staff 추가 (seed.ts의 실제 데이터)
         if (!hasOfficeStaff) {
           try {
-            await db.insert(officeStaff).values({
-              name: "테스트담당자",
-              phone: "010-1234-5678"
-            }).onConflictDoNothing();
-            console.log("✅ Office Staff 추가됨");
+            await db.insert(officeStaff).values([
+              { name: '이수진', phone: '010-4941-7742' },
+              { name: '박지연', phone: '010-9321-4482' },
+              { name: '김민하', phone: '010-844-9931' },
+            ]).onConflictDoNothing();
+            console.log("✅ Office Staff 추가됨: 이수진, 박지연, 김민하");
           } catch (error: any) {
             console.error("⚠️ Office Staff 추가 실패:", error.message);
           }
         }
 
-        // Admin Staff 추가
+        // Admin Staff 추가 (seed.ts의 실제 데이터)
         if (!hasAdminStaff) {
           try {
-            await db.insert(adminStaff).values({
-              name: "관리자",
-              phone: "010-1234-5678"
-            }).onConflictDoNothing();
-            console.log("✅ Admin Staff 추가됨");
+            await db.insert(adminStaff).values([
+              { name: '천일요비', phone: '010-1111-1111' },
+            ]).onConflictDoNothing();
+            console.log("✅ Admin Staff 추가됨: 천일요비");
           } catch (error: any) {
             console.error("⚠️ Admin Staff 추가 실패:", error.message);
           }
